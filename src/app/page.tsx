@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import BreathingButton from "@/components/BreathingButton";
+import TiltCard from "@/components/TiltCard";
 
 // Staggered animation variants
 const containerVariants = {
@@ -115,30 +116,30 @@ export default function Home() {
           viewport={{ once: true, margin: "-50px" }}
           variants={containerVariants}
         >
-          <motion.div className="feature-card" variants={itemVariants}>
+          <TiltCard className="feature-card">
             <h3>Symbolic Visualization</h3>
             <p>
               Visually demonstrate how "home tension" affects a child's
               stress/anxiety state using colors, vignettes, and distortions
               rather than graphic depictions.
             </p>
-          </motion.div>
-          <motion.div className="feature-card" variants={itemVariants}>
+          </TiltCard>
+          <TiltCard className="feature-card">
             <h3>Interactive Control</h3>
             <p>
               Users can adjust "Home Tension" levels and view real-time changes
               in a Stress Meter and related indicators like focus, sleep, and
               fear.
             </p>
-          </motion.div>
-          <motion.div className="feature-card" variants={itemVariants}>
+          </TiltCard>
+          <TiltCard className="feature-card">
             <h3>Coping Mechanisms</h3>
             <p>
               Demonstrate relief through coping tool buttons (breathing,
               grounding, support) that trigger calming visual transitions and
               reduce stress levels.
             </p>
-          </motion.div>
+          </TiltCard>
         </motion.div>
       </section>
 
