@@ -1,7 +1,20 @@
 import type { Metadata } from "next";
-// import localFont from "next/font/local";
+import { Inter, Nunito } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+
+// Medical Grade Typography
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const nunito = Nunito({
+  subsets: ["latin"],
+  variable: "--font-nunito",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Stress-to-Calm Visualizer",
@@ -16,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body className={`${inter.variable} ${nunito.variable}`}>
         <Navbar />
         {children}
       </body>

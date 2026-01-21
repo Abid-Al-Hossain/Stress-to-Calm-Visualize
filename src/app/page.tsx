@@ -1,35 +1,74 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "framer-motion";
+import BreathingButton from "@/components/BreathingButton";
+
+// Staggered animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2, // Stagger each child by 0.2s
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 50,
+      damping: 20,
+    },
+  },
+};
 
 export default function Home() {
   return (
     <main>
-      <section className="hero">
+      <motion.section
+        className="hero"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
         <div className="container">
-          <h1 className="title-gradient">
+          <motion.h1 className="title-gradient" variants={itemVariants}>
             Stress-to-Calm <br /> Visualizer
-          </h1>
-          <p className="subtitle">
+          </motion.h1>
+          <motion.p className="subtitle" variants={itemVariants}>
             Understanding how "Home Tension" affects a child's mental state
             through symbolic, non-graphic visualization.
-          </p>
-          <div style={{ marginTop: "2rem" }}>
-            <Link
-              href="/register"
-              className="btn btn-primary"
-              style={{ marginRight: "1rem" }}
-            >
+          </motion.p>
+          <motion.div style={{ marginTop: "2rem" }} variants={itemVariants}>
+            <BreathingButton href="/register" variant="primary">
               Create Account
-            </Link>
-            <Link href="#objectives" className="btn btn-outline">
+            </BreathingButton>
+            <Link
+              href="#objectives"
+              className="btn btn-outline"
+              style={{ marginLeft: "1rem" }}
+            >
               Learn More
             </Link>
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
-      <section id="introduction" className="container mt-8">
+      <motion.section
+        id="introduction"
+        className="container mt-8"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
         <div className="card">
           <h2>Introduction</h2>
           <p className="mt-2" style={{ maxWidth: "800px", lineHeight: "1.8" }}>
@@ -61,7 +100,7 @@ export default function Home() {
             diagnostic tool.
           </div>
         </div>
-      </section>
+      </motion.section>
 
       <section
         id="objectives"
@@ -69,60 +108,71 @@ export default function Home() {
         style={{ marginTop: "4rem", marginBottom: "4rem" }}
       >
         <h2 className="text-center mb-4">Project Objectives</h2>
-        <div className="feature-grid">
-          <div className="feature-card">
+        <motion.div
+          className="feature-grid"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={containerVariants}
+        >
+          <motion.div className="feature-card" variants={itemVariants}>
             <h3>Symbolic Visualization</h3>
             <p>
               Visually demonstrate how "home tension" affects a child's
               stress/anxiety state using colors, vignettes, and distortions
               rather than graphic depictions.
             </p>
-          </div>
-          <div className="feature-card">
+          </motion.div>
+          <motion.div className="feature-card" variants={itemVariants}>
             <h3>Interactive Control</h3>
             <p>
               Users can adjust "Home Tension" levels and view real-time changes
               in a Stress Meter and related indicators like focus, sleep, and
               fear.
             </p>
-          </div>
-          <div className="feature-card">
+          </motion.div>
+          <motion.div className="feature-card" variants={itemVariants}>
             <h3>Coping Mechanisms</h3>
             <p>
               Demonstrate relief through coping tool buttons (breathing,
               grounding, support) that trigger calming visual transitions and
               reduce stress levels.
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
-      <section className="container mb-4">
-        <div className="card" style={{ background: "#2C3E50", color: "white" }}>
+      <motion.section
+        className="container mb-4"
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="card text-center">
           <div
             style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              textAlign: "center",
             }}
           >
             <h2>Ready to Explore?</h2>
             <p
+              className="text-muted"
               style={{
-                color: "#BDC3C7",
                 marginTop: "1rem",
                 marginBottom: "2rem",
               }}
             >
               Join the platform to access the educational visualization tool.
             </p>
-            <Link href="/register" className="btn btn-secondary">
+            <BreathingButton href="/register" variant="primary">
               Get Started Now
-            </Link>
+            </BreathingButton>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       <footer
         className="container text-center text-muted"
