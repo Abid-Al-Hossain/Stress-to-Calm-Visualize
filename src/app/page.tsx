@@ -1,66 +1,140 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main>
+      <section className="hero">
+        <div className="container">
+          <h1 className="title-gradient">
+            Stress-to-Calm <br /> Visualizer
+          </h1>
+          <p className="subtitle">
+            Understanding how "Home Tension" affects a child's mental state
+            through symbolic, non-graphic visualization.
           </p>
+          <div style={{ marginTop: "2rem" }}>
+            <Link
+              href="/register"
+              className="btn btn-primary"
+              style={{ marginRight: "1rem" }}
+            >
+              Create Account
+            </Link>
+            <Link href="#objectives" className="btn btn-outline">
+              Learn More
+            </Link>
+          </div>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </section>
+
+      <section id="introduction" className="container mt-8">
+        <div className="card">
+          <h2>Introduction</h2>
+          <p className="mt-2" style={{ maxWidth: "800px", lineHeight: "1.8" }}>
+            Computer Graphics plays a vital role in visualizing complex
+            real-world concepts in a simple and intuitive manner. Children who
+            are exposed to domestic violence may experience fear, anxiety,
+            hypervigilance, and difficulty concentrating—effects that are often
+            invisible and hard to explain.
+          </p>
+          <p className="mt-4">
+            The <strong>Stress-to-Calm Visualizer</strong> visually represents
+            how "home tension" can influence a child's stress level through
+            changes in color tone, vignette/tunnel vision, mild distortion, and
+            calming transitions when coping tools are selected.
+          </p>
+          <div
+            className="alert alert-info mt-4"
+            style={{
+              background: "#E3F2FD",
+              padding: "1rem",
+              borderRadius: "8px",
+              borderLeft: "4px solid #4A90E2",
+              marginTop: "2rem",
+            }}
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <strong>Educational Disclaimer:</strong> This system is designed
+            strictly for educational and demonstrative purposes. It provides
+            symbolic visualizations and is <strong>not</strong> a medical or
+            diagnostic tool.
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section
+        id="objectives"
+        className="container"
+        style={{ marginTop: "4rem", marginBottom: "4rem" }}
+      >
+        <h2 className="text-center mb-4">Project Objectives</h2>
+        <div className="feature-grid">
+          <div className="feature-card">
+            <h3>Symbolic Visualization</h3>
+            <p>
+              Visually demonstrate how "home tension" affects a child's
+              stress/anxiety state using colors, vignettes, and distortions
+              rather than graphic depictions.
+            </p>
+          </div>
+          <div className="feature-card">
+            <h3>Interactive Control</h3>
+            <p>
+              Users can adjust "Home Tension" levels and view real-time changes
+              in a Stress Meter and related indicators like focus, sleep, and
+              fear.
+            </p>
+          </div>
+          <div className="feature-card">
+            <h3>Coping Mechanisms</h3>
+            <p>
+              Demonstrate relief through coping tool buttons (breathing,
+              grounding, support) that trigger calming visual transitions and
+              reduce stress levels.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="container mb-4">
+        <div className="card" style={{ background: "#2C3E50", color: "white" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+            }}
+          >
+            <h2>Ready to Explore?</h2>
+            <p
+              style={{
+                color: "#BDC3C7",
+                marginTop: "1rem",
+                marginBottom: "2rem",
+              }}
+            >
+              Join the platform to access the educational visualization tool.
+            </p>
+            <Link href="/register" className="btn btn-secondary">
+              Get Started Now
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <footer
+        className="container text-center text-muted"
+        style={{ padding: "2rem 0", borderTop: "1px solid #eee" }}
+      >
+        <p>
+          © 2026 Stress-to-Calm Visualizer. Computer Graphics Course Project.
+        </p>
+        <p style={{ fontSize: "0.8rem", marginTop: "0.5rem" }}>
+          Submitted by: Ahmed Talal Wazih, Fahad Bin Aziz Nabil, Abid Al Hossain
+        </p>
+      </footer>
+    </main>
   );
 }
