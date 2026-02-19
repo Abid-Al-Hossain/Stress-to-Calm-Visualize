@@ -74,11 +74,12 @@ export default function Home() {
               </BreathingButton>
             )}
             <Link
-              href="#objectives"
+              href="#"
               className="btn btn-outline"
               style={{ marginLeft: "1rem" }}
+              onClick={(e) => e.preventDefault()}
             >
-              Learn More
+              Answer Questions
             </Link>
           </motion.div>
 
