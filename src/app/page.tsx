@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { motion, Variants } from "framer-motion";
 import BreathingButton from "@/components/BreathingButton";
 import TiltCard from "@/components/TiltCard";
+import StressToCalmPreview from "@/components/StressToCalmPreview";
 import { AuthService, User } from "@/services/auth";
 
 // Staggered animation variants
@@ -80,6 +81,13 @@ export default function Home() {
               Learn More
             </Link>
           </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="mt-12 w-full flex justify-center"
+          >
+            <StressToCalmPreview />
+          </motion.div>
         </div>
       </motion.section>
 
@@ -136,6 +144,28 @@ export default function Home() {
           variants={containerVariants}
         >
           <TiltCard className="feature-card">
+            <div className="mb-4 text-4xl text-blue-500">
+              {/* Eye Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-12 h-12"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+            </div>
             <h3>Symbolic Visualization</h3>
             <p>
               Visually demonstrate how "home tension" affects a child's
@@ -144,6 +174,23 @@ export default function Home() {
             </p>
           </TiltCard>
           <TiltCard className="feature-card">
+            <div className="mb-4 text-4xl text-teal-500">
+              {/* Sliders Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-12 h-12"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 13.5V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 9.75V10.5"
+                />
+              </svg>
+            </div>
             <h3>Interactive Control</h3>
             <p>
               Users can adjust "Home Tension" levels and view real-time changes
@@ -152,6 +199,23 @@ export default function Home() {
             </p>
           </TiltCard>
           <TiltCard className="feature-card">
+            <div className="mb-4 text-4xl text-pink-500">
+              {/* Heart Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-12 h-12"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                />
+              </svg>
+            </div>
             <h3>Coping Mechanisms</h3>
             <p>
               Demonstrate relief through coping tool buttons (breathing,
