@@ -58,7 +58,7 @@
     box-shadow: 0 4px 10px rgba(90, 155, 212, 0.3);
   }
   50% {
-    transform: scale(1.02);
+    transform: scale(1.05);
     text-shadow: 0 0 1px rgba(255, 255, 255, 0.4);
     box-shadow: 0 10px 20px rgba(90, 155, 212, 0.4);
   }
@@ -180,7 +180,7 @@ a:hover {
   color: white;
 
   /* Breathing animation */
-  animation: breathe 5s ease-in-out infinite;
+  animation: breathe 3s ease-in-out infinite;
 
   /* Optimization for sharp text */
   will-change: transform;

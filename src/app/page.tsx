@@ -73,11 +73,9 @@ export default function Home() {
         <div className="card">
           <h2>Introduction</h2>
           <p className="mt-2" style={{ maxWidth: "800px", lineHeight: "1.8" }}>
-            Computer Graphics plays a vital role in visualizing complex
-            real-world concepts in a simple and intuitive manner. Children who
-            are exposed to domestic violence may experience fear, anxiety,
-            hypervigilance, and difficulty concentrating—effects that are often
-            invisible and hard to explain.
+            Children who are exposed to domestic violence may experience fear,
+            anxiety, hypervigilance, and difficulty concentrating—effects that
+            are often invisible and hard to explain.
           </p>
           <p className="mt-4">
             The <strong>Stress-to-Calm Visualizer</strong> visually represents
@@ -179,11 +177,9 @@ export default function Home() {
         className="container text-center text-muted"
         style={{ padding: "2rem 0", borderTop: "1px solid #eee" }}
       >
-        <p>
-          © 2026 Stress-to-Calm Visualizer. Computer Graphics Course Project.
-        </p>
+        <p>© 2026 Stress-to-Calm Visualizer.</p>
         <p style={{ fontSize: "0.8rem", marginTop: "0.5rem" }}>
-          Submitted by: Ahmed Talal Wazih, Fahad Bin Aziz Nabil, Abid Al Hossain
+          By Ahmed Talal Wazih, Fahad Bin Aziz Nabil, Abid Al Hossain
         </p>
       </footer>
     </main>
