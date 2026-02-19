@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { motion, Variants } from "framer-motion";
 import BreathingButton from "@/components/BreathingButton";
 import TiltCard from "@/components/TiltCard";
+import { AuthService, User } from "@/services/auth";
 
 // Staggered animation variants
 const containerVariants = {
@@ -31,6 +33,19 @@ const itemVariants = {
 };
 
 export default function Home() {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setUser(AuthService.getCurrentUser());
+
+    const handleAuthChange = () => {
+      setUser(AuthService.getCurrentUser());
+    };
+
+    window.addEventListener("auth-change", handleAuthChange);
+    return () => window.removeEventListener("auth-change", handleAuthChange);
+  }, []);
+
   return (
     <main>
       <motion.section
@@ -48,9 +63,15 @@ export default function Home() {
             through symbolic, non-graphic visualization.
           </motion.p>
           <motion.div style={{ marginTop: "2rem" }} variants={itemVariants}>
-            <BreathingButton href="/register" variant="primary">
-              Create Account
-            </BreathingButton>
+            {user ? (
+              <div className="inline-block px-6 py-3 bg-white/50 backdrop-blur-md rounded-full border border-white/60 shadow-sm text-gray-700 font-medium">
+                Welcome back, {user.name}
+              </div>
+            ) : (
+              <BreathingButton href="/register" variant="primary">
+                Create Account
+              </BreathingButton>
+            )}
             <Link
               href="#objectives"
               className="btn btn-outline"
@@ -145,7 +166,7 @@ export default function Home() {
         className="container mb-4"
         initial={{ opacity: 0, scale: 0.95 }}
         whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
+        viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.6 }}
       >
         <div className="card text-center">
@@ -166,9 +187,16 @@ export default function Home() {
             >
               Join the platform to access the educational visualization tool.
             </p>
-            <BreathingButton href="/register" variant="primary">
-              Get Started Now
-            </BreathingButton>
+            {user ? (
+              <p className="text-xl font-medium text-slate-700">
+                You are currently logged in as{" "}
+                <span className="text-blue-600">{user.name}</span>
+              </p>
+            ) : (
+              <BreathingButton href="/register" variant="primary">
+                Get Started Now
+              </BreathingButton>
+            )}
           </div>
         </div>
       </motion.section>
