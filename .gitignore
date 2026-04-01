@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# research / scratch files (not needed in repo)
+*.pdf
+*.txt
+read_pdf.js
+score.txt

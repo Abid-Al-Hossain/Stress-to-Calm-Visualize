@@ -1,10 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-export default function StressToCalmPreview() {
+interface StressToCalmPreviewProps {
+  externalScore?: number | null; // When provided, overrides the slider
+}
+
+export default function StressToCalmPreview({ externalScore = null }: StressToCalmPreviewProps) {
   const [stressLevel, setStressLevel] = useState(50);
+
+  // Sync with external score from survey
+  useEffect(() => {
+    if (externalScore !== null) {
+      setStressLevel(externalScore);
+    }
+  }, [externalScore]);
 
   // Determine current state
   const getState = (level: number) => {
@@ -60,6 +71,20 @@ export default function StressToCalmPreview() {
 
   const currentVisual = visuals[currentState];
 
+  // Score label shown when external score is set
+  const scoreLabel =
+    externalScore !== null
+      ? externalScore <= 19
+        ? "Minimal"
+        : externalScore <= 39
+        ? "Mild"
+        : externalScore <= 59
+        ? "Moderate"
+        : externalScore <= 79
+        ? "High"
+        : "Severe"
+      : null;
+
   return (
     <div className="w-full max-w-2xl mx-auto my-12 p-8 rounded-3xl bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 shadow-2xl relative overflow-hidden">
       {/* Tech Grid Background */}
@@ -72,9 +97,22 @@ export default function StressToCalmPreview() {
       />
 
       <div className="text-center mb-8 relative z-10">
-        <h3 className="text-xl font-light text-slate-200 tracking-[0.2em] uppercase">
-          Bio-Metric Analysis
-        </h3>
+        {externalScore !== null && (
+          <motion.p
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              fontSize: "0.7rem",
+              fontFamily: "monospace",
+              color: currentVisual.color,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              marginBottom: "0.35rem",
+            }}
+          >
+            Assessment Score: {externalScore} / 100 · {scoreLabel} Stress
+          </motion.p>
+        )}
         <div className="flex justify-center gap-2 mt-2">
           <span className="h-1 w-1 rounded-full bg-slate-500 animate-pulse" />
           <span className="h-1 w-1 rounded-full bg-slate-500 animate-pulse delay-75" />
@@ -101,27 +139,9 @@ export default function StressToCalmPreview() {
             className="overflow-visible"
           >
             {/* Connection Nodes (Tech feel) */}
-            <circle
-              cx="50"
-              cy="15"
-              r="1"
-              fill={currentVisual.color}
-              className="opacity-50"
-            />
-            <circle
-              cx="20"
-              cy="40"
-              r="1"
-              fill={currentVisual.color}
-              className="opacity-50"
-            />
-            <circle
-              cx="80"
-              cy="40"
-              r="1"
-              fill={currentVisual.color}
-              className="opacity-50"
-            />
+            <circle cx="50" cy="15" r="1" fill={currentVisual.color} className="opacity-50" />
+            <circle cx="20" cy="40" r="1" fill={currentVisual.color} className="opacity-50" />
+            <circle cx="80" cy="40" r="1" fill={currentVisual.color} className="opacity-50" />
 
             {/* Head Wireframe */}
             <motion.path
@@ -214,27 +234,41 @@ export default function StressToCalmPreview() {
         </div>
       </div>
 
-      {/* Slider */}
-      <div className="relative z-20 px-4 mt-8">
-        <div className="flex items-center gap-4">
-          <span className="text-xs font-mono text-cyan-400">NORM</span>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={stressLevel}
-            onChange={(e) => setStressLevel(Number(e.target.value))}
-            className="w-full h-1 bg-slate-700 rounded-none appearance-none cursor-pointer accent-current hover:bg-slate-600 transition-colors"
-            style={{ accentColor: currentVisual.color }}
-          />
-          <span className="text-xs font-mono text-red-400">CRIT</span>
+      {/* Slider — only shown when no external score */}
+      {externalScore === null && (
+        <div className="relative z-20 px-4 mt-8">
+          <div className="flex items-center gap-4">
+            <span className="text-xs font-mono text-cyan-400">NORM</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={stressLevel}
+              onChange={(e) => setStressLevel(Number(e.target.value))}
+              className="w-full h-1 bg-slate-700 rounded-none appearance-none cursor-pointer accent-current hover:bg-slate-600 transition-colors"
+              style={{ accentColor: currentVisual.color }}
+            />
+            <span className="text-xs font-mono text-red-400">CRIT</span>
+          </div>
+          <div className="flex justify-between mt-2 text-[10px] font-mono text-slate-500 uppercase">
+            <span>0%</span>
+            <span>50%</span>
+            <span>100%</span>
+          </div>
         </div>
-        <div className="flex justify-between mt-2 text-[10px] font-mono text-slate-500 uppercase">
-          <span>0%</span>
-          <span>50%</span>
-          <span>100%</span>
-        </div>
-      </div>
+      )}
+
+      {/* When score is from survey, show a hint */}
+      {externalScore !== null && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-center text-xs font-mono text-slate-500 mt-8 relative z-20"
+        >
+          Visualizer updated from your survey · scroll down for your solution
+        </motion.p>
+      )}
     </div>
   );
 }
