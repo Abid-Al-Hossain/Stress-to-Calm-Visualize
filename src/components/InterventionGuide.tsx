@@ -23,7 +23,7 @@ interface Tier {
   glow: string;
   breathing: { name: string; summary: string; inhale: number; hold: number; exhale: number };
   sound: { name: string; summary: string; example: string; mode: SoundMode; tags: string[] };
-  visual: { name: string; summary: string; example: string; mode: VisualMode; palette: string[]; dark: boolean; practice: string; focus: string; steps: string[]; script: string[] };
+  visual: { name: string; summary: string; example: string; mode: VisualMode; palette: string[]; dark: boolean; practice: string; focus: string; steps: string[]; scriptTitle: string; script: string[] };
   advice: { title: string; lines: string[]; focus: string; groundingName: string; groundingIntro: string; groundingSteps: string[] };
   support?: { title: string; text: string };
 }
@@ -42,6 +42,7 @@ const TIERS: Tier[] = [
       practice: "Guided imagery",
       focus: "Picture a bright open sky and a safe calm landscape. Let the image feel spacious, slow, and steady rather than analytical.",
       steps: ["Sit comfortably and let your eyes soften or close.", "Imagine a blue sky with slow clouds and a peaceful open place beneath it.", "Stay with the colors, light, and quiet feeling of the scene for about 1 to 3 minutes."],
+      scriptTitle: "Guided imagery script",
       script: ["Settle into your seat and let your shoulders drop.", "Picture a wide blue sky, slow clouds, and a peaceful open place below.", "Stay with the light, the color, and the quiet until the scene feels easy to hold."],
     },
     advice: {
@@ -65,6 +66,7 @@ const TIERS: Tier[] = [
       practice: "Guided imagery",
       focus: "Picture a calm shoreline or rain scene with smooth repeated motion. The goal is to imagine gentle flow, not scan the room.",
       steps: ["Close your eyes or keep a soft gaze on the scene.", "Imagine slow water, light rain, or a gentle shore moving at an even pace.", "Stay with one repeating visual rhythm until the body feels a little less rushed."],
+      scriptTitle: "Guided imagery script",
       script: ["Let your eyes soften and imagine slow water or light rain.", "See the movement staying even and gentle, never fast or sharp.", "Keep following that calm rhythm until your body starts to slow with it."],
     },
     advice: {
@@ -85,10 +87,11 @@ const TIERS: Tier[] = [
       mode: "circle",
       palette: ["#fefce8", "#fef08a", "#fde047", "#facc15", "#f8fafc"],
       dark: false,
-      practice: "Guided visualization",
-      focus: "Use one safe simple image and let it expand in your mind with detail. This is imagery-based relaxation, not environmental grounding.",
-      steps: ["Choose one calm image such as a glowing circle, candle, or warm sunrise.", "Picture it steadily becoming clearer and calmer in your mind.", "Keep returning to that same image whenever stress thoughts interrupt."],
-      script: ["Choose one calm image, such as a warm light, a sunrise, or a steady circle.", "Let that image become clearer and more detailed without forcing it.", "Each time your thoughts jump away, return to the same image and let it stay steady."],
+      practice: "Focused-attention visual meditation",
+      focus: "Choose one visual object and keep returning your attention to it whenever the mind wanders. The goal here is stable visual focus, not scene-building.",
+      steps: ["Keep your eyes on the center point or ring.", "When attention drifts, notice it and gently return to the same visual object.", "Stay with the chosen point for 1 to 3 minutes, aiming for steadier attention rather than vivid imagery."],
+      scriptTitle: "Focused-attention prompt",
+      script: ["Choose the center point as your only visual object.", "If your attention drifts, release the distraction and come back to the point.", "Keep returning to the same object until the mind feels less scattered."],
     },
     advice: {
       title: "Reduce the alarm signal",
@@ -108,10 +111,11 @@ const TIERS: Tier[] = [
       mode: "pulse",
       palette: ["#082f49", "#0f172a", "#1e293b", "#fb923c", "#fdba74"],
       dark: true,
-      practice: "Guided visualization",
-      focus: "Use a very simple calming image only: one dim warm light in darkness. Keep the picture minimal so it does not overload attention.",
-      steps: ["Rest your gaze or close your eyes and imagine one slow warm light.", "Let the rest of the scene stay dark, quiet, and uncluttered.", "If the mind races, come back to that single light and nothing else."],
-      script: ["Keep the picture simple: one dim warm light in a quiet dark space.", "Let everything else fade back so only that light remains important.", "If the mind races, return to the light and make the image smaller again."],
+      practice: "Soft-gaze fixation",
+      focus: "Keep the visual field minimal and rest your eyes on one slow light. This reduces visual load and supports a calmer attentional rhythm.",
+      steps: ["Use one dim pulsing light as the only point of focus.", "Keep your gaze soft rather than staring hard at it.", "If thoughts speed up, make the field smaller again and return to that one light."],
+      scriptTitle: "Soft-gaze prompt",
+      script: ["Rest your eyes on one gentle light.", "Let the rest of the scene stay quiet and unfocused.", "Each time your thoughts race, soften your gaze and return to the same light."],
     },
     advice: {
       title: "Make the task smaller",
@@ -131,10 +135,11 @@ const TIERS: Tier[] = [
       mode: "single",
       palette: ["#111827", "#1f2937", "#7f1d1d", "#b91c1c", "#fca5a5"],
       dark: true,
-      practice: "Guided visualization",
-      focus: "Keep the image as small and simple as possible: one dim light, one safe place, one repeated calm picture.",
-      steps: ["Use a tiny visual script such as a dim light or a quiet safe room.", "Do not build a complex scene; stay with one calm image only.", "If imagery increases distress, stop and use the grounding steps in the advice section instead."],
-      script: ["Use only one calm image, such as a dim light or a quiet safe room.", "Do not add details unless they make the picture feel safer and simpler.", "If the image does not help, stop and move to the grounding method in Advice."],
+      practice: "Single-point visual anchor",
+      focus: "Use the smallest possible visual target. The aim is not rich imagery but a single simple visual cue that is easy to return to.",
+      steps: ["Focus on one dim point of light only.", "Do not add extra details or build a whole scene.", "If the visual anchor increases distress or does not help, stop and switch to the grounding method in Advice."],
+      scriptTitle: "Single-point prompt",
+      script: ["Stay with one point only.", "Do not make the picture bigger or more detailed.", "If the point stops helping, leave this method and use the grounding steps instead."],
     },
     advice: {
       title: "Stay with the simplest next cue",
@@ -655,7 +660,7 @@ function VisualGuide({ tier }: { tier: Tier }) {
           <div style={{ color: "#455a64", fontSize: "0.86rem", lineHeight: 1.65 }}>{tier.visual.focus}</div>
         </div>
         <div style={{ padding: "0.95rem 1rem", borderRadius: "16px", background: "rgba(255,255,255,0.82)", border: `1px solid ${CALM_BORDER}`, marginBottom: "0.75rem" }}>
-          <div style={{ color: CALM_ACCENT_TEXT, fontWeight: 700, marginBottom: "0.45rem" }}>Guided imagery script</div>
+          <div style={{ color: CALM_ACCENT_TEXT, fontWeight: 700, marginBottom: "0.45rem" }}>{tier.visual.scriptTitle}</div>
           <div style={{ display: "grid", gap: "0.55rem" }}>
             {tier.visual.script.map((line, index) => (
               <p key={line} style={{ margin: 0, color: "#37474f", fontSize: "0.92rem", lineHeight: 1.7 }}>
