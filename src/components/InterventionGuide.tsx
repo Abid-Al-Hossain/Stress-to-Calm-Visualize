@@ -23,8 +23,8 @@ interface Tier {
   glow: string;
   breathing: { name: string; summary: string; inhale: number; hold: number; exhale: number };
   sound: { name: string; summary: string; example: string; mode: SoundMode; tags: string[] };
-  visual: { name: string; summary: string; example: string; mode: VisualMode; palette: string[]; dark: boolean };
-  advice: { title: string; lines: string[]; focus: string };
+  visual: { name: string; summary: string; example: string; mode: VisualMode; palette: string[]; dark: boolean; practice: string; focus: string; steps: string[]; script: string[] };
+  advice: { title: string; lines: string[]; focus: string; groundingName: string; groundingIntro: string; groundingSteps: string[] };
   support?: { title: string; text: string };
 }
 
@@ -32,36 +32,126 @@ const TIERS: Tier[] = [
   { range: "0-39", label: "Low Stress", color: "#38bdf8", dimColor: "#0ea5e9", glow: "rgba(56,189,248,0.32)",
     breathing: { name: "Slow natural breathing", summary: "Inhale 4 seconds, exhale 4 seconds.", inhale: 4, hold: 0, exhale: 4 },
     sound: { name: "Light nature sounds", summary: "Birds, wind, and soft water.", example: "Morning forest ambience.", mode: "nature", tags: ["Birds", "Wind", "Soft water"] },
-    visual: { name: "Soft, bright, stable visuals", summary: "Use a calm sky scene with slow clouds and stable shapes.", example: "Blue sky, slow clouds, calm landscapes.", mode: "sky", palette: ["#e0f2fe", "#bae6fd", "#7dd3fc", "#dbeafe", "#ffffff"], dark: false },
-    advice: { title: "Stay present and relaxed", lines: ["You're safe. This feeling will pass.", "Stay present and relaxed."], focus: "Keep the breath easy and let your attention rest on one calm detail." } },
+    visual: {
+      name: "Soft, bright, stable visuals",
+      summary: "Use a calm sky scene with slow clouds and stable shapes.",
+      example: "Blue sky, slow clouds, calm landscapes.",
+      mode: "sky",
+      palette: ["#e0f2fe", "#bae6fd", "#7dd3fc", "#dbeafe", "#ffffff"],
+      dark: false,
+      practice: "Guided imagery",
+      focus: "Picture a bright open sky and a safe calm landscape. Let the image feel spacious, slow, and steady rather than analytical.",
+      steps: ["Sit comfortably and let your eyes soften or close.", "Imagine a blue sky with slow clouds and a peaceful open place beneath it.", "Stay with the colors, light, and quiet feeling of the scene for about 1 to 3 minutes."],
+      script: ["Settle into your seat and let your shoulders drop.", "Picture a wide blue sky, slow clouds, and a peaceful open place below.", "Stay with the light, the color, and the quiet until the scene feels easy to hold."],
+    },
+    advice: {
+      title: "Stay present and relaxed",
+      lines: ["You're safe. This feeling will pass.", "Stay present and relaxed."],
+      focus: "Keep the breath easy and let your attention rest on one calm detail.",
+      groundingName: "5-4-3-2-1 grounding",
+      groundingIntro: "Use your senses to return attention to the present moment.",
+      groundingSteps: ["Name 5 things you can see.", "Notice 4 things you can feel.", "Listen for 3 things you can hear.", "Find 2 things you can smell.", "Notice 1 thing you can taste, or imagine a familiar taste."],
+    } },
   { range: "40-59", label: "Mild Stress", color: "#4ade80", dimColor: "#22c55e", glow: "rgba(74,222,128,0.32)",
     breathing: { name: "Controlled breathing", summary: "Inhale 4 seconds, exhale 5 seconds.", inhale: 4, hold: 0, exhale: 5 },
     sound: { name: "Gentle rhythmic sounds", summary: "Ocean waves, light rain, and soft instrumental tones.", example: "Ocean waves, light rain, soft instrumental.", mode: "ocean", tags: ["Ocean waves", "Light rain", "Soft instrumental"] },
-    visual: { name: "Smooth flowing visuals", summary: "Use slow wave motion and blue-green drifting particles.", example: "Water waves, slow particles, soft blue/green tones.", mode: "waves", palette: ["#dcfce7", "#bbf7d0", "#99f6e4", "#67e8f9", "#4ade80"], dark: false },
-    advice: { title: "Slow down and narrow your focus", lines: ["Slow down your breathing.", "Focus on one thing at a time."], focus: "Pick one sound, shape, or breath cycle and stay with that single anchor." } },
+    visual: {
+      name: "Smooth flowing visuals",
+      summary: "Use slow wave motion and blue-green drifting particles.",
+      example: "Water waves, slow particles, soft blue/green tones.",
+      mode: "waves",
+      palette: ["#dcfce7", "#bbf7d0", "#99f6e4", "#67e8f9", "#4ade80"],
+      dark: false,
+      practice: "Guided imagery",
+      focus: "Picture a calm shoreline or rain scene with smooth repeated motion. The goal is to imagine gentle flow, not scan the room.",
+      steps: ["Close your eyes or keep a soft gaze on the scene.", "Imagine slow water, light rain, or a gentle shore moving at an even pace.", "Stay with one repeating visual rhythm until the body feels a little less rushed."],
+      script: ["Let your eyes soften and imagine slow water or light rain.", "See the movement staying even and gentle, never fast or sharp.", "Keep following that calm rhythm until your body starts to slow with it."],
+    },
+    advice: {
+      title: "Slow down and narrow your focus",
+      lines: ["Slow down your breathing.", "Focus on one thing at a time."],
+      focus: "Pick one sound, shape, or breath cycle and stay with that single anchor.",
+      groundingName: "5-4-3-2-1 grounding",
+      groundingIntro: "Use your senses one by one so the environment becomes clearer than the stress signal.",
+      groundingSteps: ["Name 5 things you can see.", "Notice 4 things you can feel.", "Listen for 3 things you can hear.", "Find 2 things you can smell.", "Notice 1 thing you can taste, or imagine a familiar taste."],
+    } },
   { range: "60-74", label: "Moderate Stress", color: "#facc15", dimColor: "#eab308", glow: "rgba(250,204,21,0.32)",
     breathing: { name: "Guided breathing", summary: "Inhale 4 seconds, hold 2 seconds, exhale 6 seconds.", inhale: 4, hold: 2, exhale: 6 },
     sound: { name: "Guided breathing audio and low ambient tones", summary: "Slow ambient tones with breath-paced cue pulses.", example: "Guided breathing audio, low ambient tones.", mode: "guided", tags: ["Guided cue", "Low ambient tones", "Breath pulse"] },
-    visual: { name: "Focused visuals", summary: "Use one expanding and contracting circle as the visual anchor.", example: "Expanding/contracting circle.", mode: "circle", palette: ["#fefce8", "#fef08a", "#fde047", "#facc15", "#f8fafc"], dark: false },
-    advice: { title: "Reduce the alarm signal", lines: ["You are not in danger.", "This feeling is temporary."], focus: "Let the circle or breath cue lead. You do not need to think ahead right now." } },
+    visual: {
+      name: "Focused visuals",
+      summary: "Use one expanding and contracting circle as the visual anchor.",
+      example: "Expanding/contracting circle.",
+      mode: "circle",
+      palette: ["#fefce8", "#fef08a", "#fde047", "#facc15", "#f8fafc"],
+      dark: false,
+      practice: "Guided visualization",
+      focus: "Use one safe simple image and let it expand in your mind with detail. This is imagery-based relaxation, not environmental grounding.",
+      steps: ["Choose one calm image such as a glowing circle, candle, or warm sunrise.", "Picture it steadily becoming clearer and calmer in your mind.", "Keep returning to that same image whenever stress thoughts interrupt."],
+      script: ["Choose one calm image, such as a warm light, a sunrise, or a steady circle.", "Let that image become clearer and more detailed without forcing it.", "Each time your thoughts jump away, return to the same image and let it stay steady."],
+    },
+    advice: {
+      title: "Reduce the alarm signal",
+      lines: ["You are not in danger.", "This feeling is temporary."],
+      focus: "Let the circle or breath cue lead. You do not need to think ahead right now.",
+      groundingName: "5-4-3-2-1 grounding",
+      groundingIntro: "Move through the senses slowly so your attention returns to the room, not the alarm feeling.",
+      groundingSteps: ["Name 5 things you can see.", "Notice 4 things you can feel.", "Listen for 3 things you can hear.", "Find 2 things you can smell.", "Notice 1 thing you can taste, or imagine a familiar taste."],
+    } },
   { range: "75-89", label: "High Stress", color: "#fb923c", dimColor: "#f97316", glow: "rgba(251,146,60,0.34)",
     breathing: { name: "Slow deep breathing", summary: "Inhale 4 seconds, exhale 7 seconds.", inhale: 4, hold: 0, exhale: 7 },
     sound: { name: "Deep grounding sounds", summary: "Low bass hum, heartbeat, and brown noise.", example: "Low bass hum, heartbeat, brown noise.", mode: "grounding", tags: ["Bass hum", "Heartbeat", "Brown noise"] },
-    visual: { name: "Minimal visuals", summary: "Reduce the scene to a dark background and one slow pulsing light.", example: "Dark background with slow pulsing light.", mode: "pulse", palette: ["#082f49", "#0f172a", "#1e293b", "#fb923c", "#fdba74"], dark: true },
-    advice: { title: "Make the task smaller", lines: ["Focus only on your breathing.", "You are safe right now."], focus: "One breath in, one breath out. Nothing else needs your attention right now." } },
+    visual: {
+      name: "Minimal visuals",
+      summary: "Reduce the scene to a dark background and one slow pulsing light.",
+      example: "Dark background with slow pulsing light.",
+      mode: "pulse",
+      palette: ["#082f49", "#0f172a", "#1e293b", "#fb923c", "#fdba74"],
+      dark: true,
+      practice: "Guided visualization",
+      focus: "Use a very simple calming image only: one dim warm light in darkness. Keep the picture minimal so it does not overload attention.",
+      steps: ["Rest your gaze or close your eyes and imagine one slow warm light.", "Let the rest of the scene stay dark, quiet, and uncluttered.", "If the mind races, come back to that single light and nothing else."],
+      script: ["Keep the picture simple: one dim warm light in a quiet dark space.", "Let everything else fade back so only that light remains important.", "If the mind races, return to the light and make the image smaller again."],
+    },
+    advice: {
+      title: "Make the task smaller",
+      lines: ["Focus only on your breathing.", "You are safe right now."],
+      focus: "One breath in, one breath out. Nothing else needs your attention right now.",
+      groundingName: "3-3-3 grounding",
+      groundingIntro: "When the body is very activated, shorten the grounding task and stay with the easiest sensory cues.",
+      groundingSteps: ["Name 3 things you can see.", "Name 3 things you can hear.", "Move or touch 3 parts of your body, or 3 nearby surfaces."],
+    } },
   { range: "90-100", label: "Severe Stress", color: "#f87171", dimColor: "#ef4444", glow: "rgba(248,113,113,0.36)",
     breathing: { name: "Very slow breathing", summary: "Inhale 4 seconds, exhale 8 seconds.", inhale: 4, hold: 0, exhale: 8 },
     sound: { name: "Very simple repetitive sounds", summary: "A slow heartbeat with very simple repeating cues.", example: "Slow heartbeat, soft voice guidance.", mode: "heartbeat", tags: ["Slow heartbeat", "Simple pulse", "Guidance cue"] },
-    visual: { name: "Very minimal visuals", summary: "Keep only a single dim pulsing light on a dark background.", example: "Single dim pulsing light, dark background.", mode: "single", palette: ["#111827", "#1f2937", "#7f1d1d", "#b91c1c", "#fca5a5"], dark: true },
-    advice: { title: "Stay with the simplest next cue", lines: ["Stay here. Breathe slowly.", "You are not alone.", "This will pass."], focus: "Use one slow breath and one small anchor. Do not try to solve everything at once." },
+    visual: {
+      name: "Very minimal visuals",
+      summary: "Keep only a single dim pulsing light on a dark background.",
+      example: "Single dim pulsing light, dark background.",
+      mode: "single",
+      palette: ["#111827", "#1f2937", "#7f1d1d", "#b91c1c", "#fca5a5"],
+      dark: true,
+      practice: "Guided visualization",
+      focus: "Keep the image as small and simple as possible: one dim light, one safe place, one repeated calm picture.",
+      steps: ["Use a tiny visual script such as a dim light or a quiet safe room.", "Do not build a complex scene; stay with one calm image only.", "If imagery increases distress, stop and use the grounding steps in the advice section instead."],
+      script: ["Use only one calm image, such as a dim light or a quiet safe room.", "Do not add details unless they make the picture feel safer and simpler.", "If the image does not help, stop and move to the grounding method in Advice."],
+    },
+    advice: {
+      title: "Stay with the simplest next cue",
+      lines: ["Stay here. Breathe slowly.", "You are not alone.", "This will pass."],
+      focus: "Use one slow breath and one small anchor. Do not try to solve everything at once.",
+      groundingName: "Orientation grounding",
+      groundingIntro: "Keep the questions simple and sensory so your attention returns to what is here right now.",
+      groundingSteps: ["Tell yourself 1 thing you can see right now, 1 thing you can hear right now, and 1 thing you can touch or feel right now.", "If that helps, find 2 new things you can see, 2 you can hear, and 2 you can feel.", "Stop and get support if the exercise makes you more distressed or you do not feel safe."],
+    },
     support: { title: "Need immediate support?", text: "If you feel unable to stay safe or the distress is overwhelming, call or text 988 now. If there is immediate danger, call emergency services right away." } },
 ];
 
 const METHODS = [
   { id: "breathing" as Method, label: "Breathing", desc: "Follow the guide-prescribed breathing rhythm for your tier.", short: "BR" },
   { id: "sound" as Method, label: "Sound", desc: "Play a matching calming sound pattern for this stress level.", short: "SO" },
-  { id: "visual" as Method, label: "Visual", desc: "Use the visual focus pattern recommended by the guide.", short: "VI" },
-  { id: "advice" as Method, label: "Advice", desc: "Read the short prompts that belong to this stress range.", short: "AD" },
+  { id: "visual" as Method, label: "Visual", desc: "Use guided imagery or visualization matched to this stress level.", short: "VI" },
+  { id: "advice" as Method, label: "Advice", desc: "Use the guide prompts together with a sensory grounding sequence.", short: "AD" },
 ];
 
 const CLOUDS = [
@@ -85,6 +175,12 @@ const PARTICLES = [
   { x: 332, y: 110, size: 11, delay: 3.0 },
   { x: 388, y: 82, size: 7, delay: 3.6 },
 ];
+
+const CALM_ACCENT = "#63b3ed";
+const CALM_ACCENT_DEEP = "#76c7b7";
+const CALM_ACCENT_TEXT = "#4f87b9";
+const CALM_BORDER = "rgba(99,179,237,0.18)";
+const CALM_PANEL = "linear-gradient(180deg, rgba(255,255,255,0.84) 0%, rgba(240,249,255,0.96) 100%)";
 
 function getTier(score: number) {
   if (score <= 39) return TIERS[0];
@@ -468,27 +564,37 @@ function SoundGuide({ tier }: { tier: Tier }) {
   );
 }
 function CircleFocus({ tier }: { tier: Tier }) {
-  const phases = useMemo(() => getPhases(tier), [tier]);
-  const { phase, remaining } = usePhases(phases, true);
-
   return (
     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "0.8rem" }}>
-      <motion.div animate={{ scale: phase.scale }} transition={{ duration: phase.seconds, ease: "easeInOut" }}
-        style={{ width: "96px", height: "96px", borderRadius: "50%", background: `radial-gradient(circle, ${tier.color}55 0%, ${tier.color}18 100%)`, border: `2px solid ${tier.color}`, boxShadow: `0 0 34px ${tier.glow}` }} />
+      <div style={{ width: "132px", height: "132px", borderRadius: "50%", border: `2px solid ${tier.color}`, boxShadow: `0 0 34px ${tier.glow}`, display: "flex", alignItems: "center", justifyContent: "center", background: `radial-gradient(circle, ${tier.color}18 0%, rgba(255,255,255,0.9) 100%)` }}>
+        <div style={{ width: "72px", height: "72px", borderRadius: "50%", border: `2px solid ${tier.color}88`, display: "flex", alignItems: "center", justifyContent: "center", background: `radial-gradient(circle, ${tier.color}42 0%, rgba(255,255,255,0.22) 100%)` }}>
+          <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: tier.dimColor, boxShadow: `0 0 14px ${tier.glow}` }} />
+        </div>
+      </div>
       <div style={{ textAlign: "center" }}>
-        <div style={{ color: tier.dimColor, fontWeight: 700 }}>{phase.label}</div>
-        <div style={{ color: "#546e7a", fontSize: "0.88rem" }}>{remaining}s</div>
+        <div style={{ color: tier.dimColor, fontWeight: 700 }}>Center / Ring / Edge</div>
+        <div style={{ color: "#546e7a", fontSize: "0.88rem" }}>Use your eyes to move from the center outward, then back to the room.</div>
       </div>
     </div>
   );
 }
 
 function VisualGuide({ tier }: { tier: Tier }) {
-  const background = tier.visual.mode === "sky" ? "linear-gradient(180deg, #dbeafe 0%, #eff6ff 58%, #d9f99d 100%)" : tier.visual.mode === "waves" ? "linear-gradient(180deg, #ecfeff 0%, #d1fae5 54%, #e0f2fe 100%)" : tier.visual.mode === "circle" ? "linear-gradient(180deg, #fefce8 0%, #f8fafc 100%)" : tier.visual.mode === "pulse" ? "linear-gradient(180deg, #0f172a 0%, #111827 100%)" : "linear-gradient(180deg, #111827 0%, #1f2937 100%)";
+  const background = tier.visual.mode === "sky"
+    ? "linear-gradient(180deg, #dbeafe 0%, #eff6ff 58%, #d9f99d 100%)"
+    : tier.visual.mode === "waves"
+      ? "linear-gradient(180deg, #ecfeff 0%, #d1fae5 54%, #e0f2fe 100%)"
+      : tier.visual.mode === "circle"
+        ? "linear-gradient(180deg, #f8fbff 0%, #eef7fb 100%)"
+        : tier.visual.mode === "pulse"
+          ? "linear-gradient(180deg, #e5f0ff 0%, #edf7fb 58%, #dff5ee 100%)"
+          : "linear-gradient(180deg, #edf4ff 0%, #f6fbff 56%, #e4f6f1 100%)";
+  const visualAccent = tier.visual.mode === "pulse" || tier.visual.mode === "single" ? CALM_ACCENT_DEEP : tier.color;
+  const visualGlow = tier.visual.mode === "pulse" || tier.visual.mode === "single" ? "rgba(118,199,183,0.34)" : tier.glow;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
-      <div style={{ width: "100%", maxWidth: "440px", height: "220px", borderRadius: "20px", overflow: "hidden", position: "relative", border: "1px solid rgba(90,155,212,0.18)", background }}>
+      <div style={{ width: "100%", maxWidth: "440px", height: "220px", borderRadius: "20px", overflow: "hidden", position: "relative", border: `1px solid ${CALM_BORDER}`, background, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.55)" }}>
         {tier.visual.mode === "sky" && (
           <>
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "56px", background: "linear-gradient(180deg, rgba(167,243,208,0.2) 0%, #bbf7d0 100%)" }} />
@@ -525,57 +631,89 @@ function VisualGuide({ tier }: { tier: Tier }) {
 
         {tier.visual.mode === "pulse" && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <motion.div animate={{ scale: [0.95, 1.22, 0.95], opacity: [0.3, 0.75, 0.3] }} transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
-              style={{ width: "74px", height: "74px", borderRadius: "50%", background: `radial-gradient(circle, ${tier.color} 0%, rgba(255,255,255,0) 72%)`, boxShadow: `0 0 42px ${tier.glow}` }} />
+            <div
+              style={{ width: "74px", height: "74px", borderRadius: "50%", background: `radial-gradient(circle, ${visualAccent} 0%, rgba(255,255,255,0) 72%)`, opacity: 0.72, boxShadow: `0 0 42px ${visualGlow}` }}
+            />
           </div>
         )}
 
         {tier.visual.mode === "single" && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.5, 0.2] }} transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
-              style={{ width: "28px", height: "28px", borderRadius: "50%", background: tier.color, boxShadow: `0 0 34px ${tier.glow}` }} />
+            <div
+              style={{ width: "28px", height: "28px", borderRadius: "50%", background: visualAccent, opacity: 0.58, boxShadow: `0 0 34px ${visualGlow}` }}
+            />
           </div>
         )}
       </div>
 
-      <div style={{ width: "100%", maxWidth: "430px", background: "rgba(255,255,255,0.58)", borderRadius: "16px", padding: "1rem 1.15rem", border: "1px solid rgba(90,155,212,0.15)" }}>
+      <div style={{ width: "100%", maxWidth: "430px", background: CALM_PANEL, borderRadius: "16px", padding: "1rem 1.15rem", border: `1px solid ${CALM_BORDER}` }}>
         <p style={{ margin: "0 0 0.45rem", fontWeight: 700, color: "#2c3e50" }}>{tier.visual.name}</p>
         <p style={{ margin: "0 0 0.6rem", color: "#546e7a", fontSize: "0.9rem", lineHeight: 1.7 }}>{tier.visual.summary}</p>
-        <p style={{ margin: 0, color: "#455a64", fontSize: "0.88rem", lineHeight: 1.6 }}>Example: {tier.visual.example}</p>
+        <p style={{ margin: "0 0 0.55rem", color: "#455a64", fontSize: "0.88rem", lineHeight: 1.6 }}>Example: {tier.visual.example}</p>
+        <div style={{ padding: "0.85rem 0.95rem", borderRadius: "14px", background: "rgba(227,242,253,0.7)", border: `1px solid ${CALM_BORDER}`, marginBottom: "0.75rem" }}>
+          <div style={{ color: CALM_ACCENT_TEXT, fontWeight: 700, marginBottom: "0.25rem" }}>{tier.visual.practice}</div>
+          <div style={{ color: "#455a64", fontSize: "0.86rem", lineHeight: 1.65 }}>{tier.visual.focus}</div>
+        </div>
+        <div style={{ padding: "0.95rem 1rem", borderRadius: "16px", background: "rgba(255,255,255,0.82)", border: `1px solid ${CALM_BORDER}`, marginBottom: "0.75rem" }}>
+          <div style={{ color: CALM_ACCENT_TEXT, fontWeight: 700, marginBottom: "0.45rem" }}>Guided imagery script</div>
+          <div style={{ display: "grid", gap: "0.55rem" }}>
+            {tier.visual.script.map((line, index) => (
+              <p key={line} style={{ margin: 0, color: "#37474f", fontSize: "0.92rem", lineHeight: 1.7 }}>
+                {index + 1}. {line}
+              </p>
+            ))}
+          </div>
+        </div>
+        <div style={{ display: "grid", gap: "0.55rem" }}>
+          {tier.visual.steps.map((step, index) => (
+            <div key={step} style={{ padding: "0.82rem 0.95rem", borderRadius: "14px", background: "rgba(255,255,255,0.78)", border: `1px solid ${CALM_BORDER}` }}>
+              <div style={{ color: CALM_ACCENT_TEXT, fontWeight: 700, marginBottom: "0.2rem" }}>Practice note {index + 1}</div>
+              <div style={{ color: "#37474f", fontSize: "0.88rem", lineHeight: 1.6 }}>{step}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 function AdviceGuide({ tier }: { tier: Tier }) {
-  const [index, setIndex] = useState(0);
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", maxWidth: "440px", margin: "0 auto" }}>
       <div style={{ background: "rgba(255,255,255,0.6)", borderRadius: "18px", border: `1px solid ${tier.color}33`, padding: "1.15rem 1.2rem" }}>
         <p style={{ margin: "0 0 0.45rem", fontSize: "0.76rem", textTransform: "uppercase", letterSpacing: "0.1em", color: tier.dimColor }}>{tier.advice.title}</p>
-        <p style={{ margin: 0, color: "#2c3e50", fontSize: "1.15rem", lineHeight: 1.6, fontWeight: 700 }}>
-          {tier.advice.lines[index]}
-        </p>
-      </div>
-
-      <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem" }}>
-        {tier.advice.lines.map((line, lineIndex) => (
-          <button key={line} onClick={() => setIndex(lineIndex)} aria-label={`Advice prompt ${lineIndex + 1}`}
-            style={{ width: "11px", height: "11px", borderRadius: "50%", border: `1px solid ${lineIndex === index ? tier.color : "rgba(90,155,212,0.24)"}`, background: lineIndex === index ? tier.color : "rgba(255,255,255,0.6)", cursor: "pointer" }} />
-        ))}
+        <div style={{ display: "grid", gap: "0.55rem" }}>
+          {tier.advice.lines.map((line, index) => (
+            <div key={line} style={{ padding: "0.8rem 0.95rem", borderRadius: "14px", background: `${tier.color}${index === 0 ? "16" : "0f"}`, border: `1px solid ${tier.color}22` }}>
+              <div style={{ color: tier.dimColor, fontSize: "0.74rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.2rem" }}>
+                Prompt {index + 1}
+              </div>
+              <div style={{ color: "#2c3e50", fontSize: "1rem", lineHeight: 1.55, fontWeight: 700 }}>
+                {line}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div style={{ background: `${tier.color}10`, borderLeft: `3px solid ${tier.color}`, borderRadius: "0 12px 12px 0", padding: "0.9rem 1rem" }}>
         <p style={{ margin: 0, color: "#455a64", fontSize: "0.88rem", lineHeight: 1.7 }}>{tier.advice.focus}</p>
       </div>
 
-      <div style={{ display: "grid", gap: "0.65rem" }}>
-        {tier.advice.lines.map((line, lineIndex) => (
-          <div key={`${line}-${lineIndex}`} style={{ padding: "0.9rem 1rem", borderRadius: "14px", background: lineIndex === index ? `${tier.color}12` : "rgba(255,255,255,0.42)", border: `1px solid ${lineIndex === index ? tier.color : "rgba(90,155,212,0.14)"}` }}>
-            <div style={{ color: lineIndex === index ? tier.dimColor : "#546e7a", fontWeight: 600 }}>Step {lineIndex + 1}</div>
-            <div style={{ color: "#37474f", marginTop: "0.2rem", lineHeight: 1.6 }}>{line}</div>
-          </div>
-        ))}
+      <div style={{ background: "rgba(255,255,255,0.58)", borderRadius: "18px", border: `1px solid ${tier.color}22`, padding: "1rem 1.05rem" }}>
+        <p style={{ margin: "0 0 0.35rem", color: tier.dimColor, fontSize: "0.76rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+          {tier.advice.groundingName}
+        </p>
+        <p style={{ margin: "0 0 0.75rem", color: "#546e7a", fontSize: "0.9rem", lineHeight: 1.7 }}>
+          {tier.advice.groundingIntro}
+        </p>
+        <div style={{ display: "grid", gap: "0.6rem" }}>
+          {tier.advice.groundingSteps.map((step, index) => (
+            <div key={step} style={{ padding: "0.85rem 0.95rem", borderRadius: "14px", background: "rgba(255,255,255,0.72)", border: "1px solid rgba(90,155,212,0.14)" }}>
+              <div style={{ color: tier.dimColor, fontWeight: 700, marginBottom: "0.2rem" }}>Grounding step {index + 1}</div>
+              <div style={{ color: "#37474f", lineHeight: 1.6 }}>{step}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {tier.support && (
@@ -614,12 +752,12 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
       style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", background: "rgba(180,215,235,0.62)" }}>
       <motion.div initial={{ scale: 0.94, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.94, opacity: 0, y: 20 }}
         transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-        style={{ width: "100%", maxWidth: "700px", background: "rgba(255,255,255,0.94)", border: "1px solid rgba(255,255,255,0.6)", borderRadius: "24px", padding: "1.4rem 1.4rem 1.25rem", boxShadow: `0 0 32px ${tier.glow}, 0 20px 48px rgba(90,155,212,0.12)`, maxHeight: "88vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        style={{ width: "100%", maxWidth: "700px", background: "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(244,250,255,0.98) 100%)", border: "1px solid rgba(255,255,255,0.62)", borderRadius: "24px", padding: "1.4rem 1.4rem 1.25rem", boxShadow: "0 0 32px rgba(99,179,237,0.18), 0 20px 48px rgba(90,155,212,0.12)", maxHeight: "88vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
         <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", WebkitOverflowScrolling: "touch", paddingRight: "0.15rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", marginBottom: "0.8rem" }}>
           <div>
             {selected && <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#78909c", fontSize: "0.9rem", fontWeight: 600, padding: 0, marginBottom: "0.45rem" }}>Back to methods</button>}
-            <p style={{ fontSize: "0.75rem", fontWeight: 700, color: tier.color, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 0.3rem" }}>
+            <p style={{ fontSize: "0.75rem", fontWeight: 700, color: CALM_ACCENT_TEXT, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 0.3rem" }}>
               Score {score}/100 - {tier.label} - Range {tier.range}
             </p>
             <h2 style={{ color: "#2c3e50", fontSize: "1.55rem", fontWeight: 800, margin: 0 }}>
@@ -630,10 +768,10 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
         </div>
 
         <div style={{ height: "4px", background: "rgba(90,155,212,0.12)", borderRadius: "999px", overflow: "hidden", marginBottom: "1.2rem" }}>
-          <div style={{ width: `${score}%`, height: "100%", background: `linear-gradient(90deg, #5a9bd4, ${tier.color})`, borderRadius: "999px", transition: "width 0.35s ease-out" }} />
+          <div style={{ width: `${score}%`, height: "100%", background: `linear-gradient(90deg, ${CALM_ACCENT}, ${CALM_ACCENT_DEEP})`, borderRadius: "999px", transition: "width 0.35s ease-out" }} />
         </div>
 
-        {!selected && <div style={{ background: `${tier.color}10`, borderRadius: "16px", border: `1px solid ${tier.color}24`, padding: "1rem 1.1rem", marginBottom: "1.2rem" }}>
+        {!selected && <div style={{ background: "rgba(227,242,253,0.58)", borderRadius: "16px", border: `1px solid ${CALM_BORDER}`, padding: "1rem 1.1rem", marginBottom: "1.2rem" }}>
           <p style={{ margin: 0, color: "#455a64", lineHeight: 1.7 }}>
             This solution flow follows stress_intervention_guide.txt. Each method below matches your current stress range for breathing, sound, visual focus, and advice prompts.
           </p>
@@ -644,16 +782,16 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.9rem", marginBottom: "1.2rem" }}>
                 {METHODS.map((method) => (
                   <button key={method.id} id={`method-${method.id}-btn`} onClick={() => setSelected(method.id)}
-                    style={{ background: "rgba(255,255,255,0.66)", border: `1px solid ${tier.color}33`, borderRadius: "18px", padding: "1.15rem", cursor: "pointer", textAlign: "left", display: "flex", flexDirection: "column", gap: "0.55rem" }}>
-                    <div style={{ width: "38px", height: "38px", borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", background: `${tier.color}18`, color: tier.dimColor, fontWeight: 800 }}>{method.short}</div>
+                    style={{ background: "rgba(255,255,255,0.74)", border: `1px solid ${CALM_BORDER}`, borderRadius: "18px", padding: "1.15rem", cursor: "pointer", textAlign: "left", display: "flex", flexDirection: "column", gap: "0.55rem", boxShadow: "0 8px 24px rgba(99,179,237,0.05)" }}>
+                    <div style={{ width: "38px", height: "38px", borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", background: "rgba(227,242,253,0.82)", color: CALM_ACCENT_TEXT, fontWeight: 800 }}>{method.short}</div>
                     <div style={{ fontSize: "1rem", fontWeight: 700, color: "#2c3e50" }}>{method.label}</div>
                     <div style={{ fontSize: "0.88rem", color: "#607d8b", lineHeight: 1.6 }}>{method.desc}</div>
                   </button>
                 ))}
               </div>
 
-              <div style={{ background: "rgba(255,255,255,0.56)", borderRadius: "16px", padding: "1rem 1.1rem", border: "1px solid rgba(90,155,212,0.15)", marginBottom: "1.2rem" }}>
-                <p style={{ margin: "0 0 0.5rem", color: tier.dimColor, fontSize: "0.76rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>Right now</p>
+              <div style={{ background: CALM_PANEL, borderRadius: "16px", padding: "1rem 1.1rem", border: `1px solid ${CALM_BORDER}`, marginBottom: "1.2rem" }}>
+                <p style={{ margin: "0 0 0.5rem", color: CALM_ACCENT_TEXT, fontSize: "0.76rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>Right now</p>
                 {tier.advice.lines.map((line) => <p key={line} style={{ margin: "0 0 0.4rem", color: "#37474f", lineHeight: 1.65 }}>&quot;{line}&quot;</p>)}
               </div>
 
@@ -665,7 +803,7 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
               <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
                 <button id="intervention-retake-btn" onClick={onRetake} style={{ background: "rgba(255,255,255,0.5)", border: "1px solid rgba(90,155,212,0.24)", borderRadius: "999px", color: "#546e7a", padding: "0.7rem 1.5rem", cursor: "pointer", fontWeight: 600 }}>Retake Survey</button>
                 <button id="intervention-done-btn" onClick={onClose}
-                  style={{ background: `linear-gradient(135deg, ${tier.color}, ${tier.dimColor})`, border: "none", borderRadius: "999px", color: "#fff", padding: "0.7rem 1.6rem", cursor: "pointer", fontWeight: 700, boxShadow: `0 8px 24px ${tier.glow}` }}>Done</button>
+                  style={{ background: `linear-gradient(135deg, ${CALM_ACCENT}, ${CALM_ACCENT_DEEP})`, border: "none", borderRadius: "999px", color: "#fff", padding: "0.7rem 1.6rem", cursor: "pointer", fontWeight: 700, boxShadow: "0 8px 24px rgba(99,179,237,0.24)" }}>Done</button>
               </div>
             </div>
           ) : (
