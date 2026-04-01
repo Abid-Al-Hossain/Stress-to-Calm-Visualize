@@ -1,36 +1,439 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Stress-to-Calm Visualizer
 
-## Getting Started
+Stress-to-Calm Visualizer is a Next.js web application that symbolically visualizes how stress can affect a child's mental state and then guides the user toward calmer states through breathing, visual, sound, and grounding interventions.
 
-First, run the development server:
+The project is built as an educational and demonstrative front-end experience. It is not a diagnostic tool, not a clinical system, and not a production-ready mental-health platform.
+
+## Purpose
+
+The app is designed to communicate difficult emotional states without graphic imagery. Instead of depicting violence directly, it uses:
+
+- facial expression changes
+- color and lighting shifts
+- stress-tier transitions
+- motion, distortion, and ambient visual cues
+- guided calming techniques
+
+The core product idea is:
+
+1. ask the user a structured stress questionnaire
+2. calculate a stress score from weighted responses
+3. map that score to a symbolic stress tier
+4. update a visualizer to reflect that state
+5. offer tier-specific coping guidance
+
+## Current Product Scope
+
+This repository currently contains:
+
+- a static Next.js App Router application
+- a landing page with educational framing
+- a modal stress survey
+- a score-driven animated visualizer
+- a tier-based intervention guide
+- a demo register/login flow stored in browser `localStorage`
+
+This repository does not currently contain:
+
+- a backend
+- a database
+- real authentication
+- user persistence beyond the browser
+- encrypted credentials
+- clinician review workflows
+- analytics
+- API routes
+
+## Main User Flow
+
+1. The user opens the home page.
+2. The landing page explains the educational purpose of the project.
+3. The user can optionally register or log in.
+4. The user opens the survey by clicking `Answer Questions` or `Start Assessment`.
+5. The app presents 10 questions in a modal.
+6. The app scores the first 5 questions and ignores the last 5 for numeric scoring.
+7. The final score is capped at `100`.
+8. The home page visualizer updates to match the assessed stress level.
+9. The user can open `Get Solution` to view a tier-specific intervention modal.
+10. The intervention modal offers four methods:
+    - breathing
+    - sound
+    - visual
+    - advice
+
+## Feature Breakdown
+
+### 1. Landing Page
+
+The home page introduces the project, explains its educational framing, and presents the main interaction points.
+
+It includes:
+
+- an animated hero section
+- the main stress visualizer
+- project objectives cards
+- an educational disclaimer
+- calls to action for assessment and registration
+
+Primary implementation:
+
+- `src/app/page.tsx`
+- `src/app/globals.css`
+
+### 2. Stress Survey
+
+The survey is a modal experience with bilingual question content. It is organized into four conceptual sections:
+
+- Emotional State
+- Physical Response
+- Stress Perception
+- Recovery and Coping
+
+The survey contains 10 questions total.
+
+Only the first 5 questions are numerically scored. Questions 6 to 10 capture preferences and reflective context, but do not change the final score.
+
+Primary implementation:
+
+- `src/components/StressSurvey.tsx`
+
+### 3. Stress Visualizer
+
+The visualizer is the most technically ambitious part of the project. It uses an animated SVG face and supporting motion effects to represent increasing levels of stress.
+
+As the stress score rises, the visual state changes through:
+
+- facial morphing
+- eyebrow tension
+- eye openness and pupil behavior
+- mouth curvature
+- wrinkles
+- sweat and tears at higher tiers
+- background glow and color changes
+- an EEG-like waveform display
+
+The visualizer can run in two modes:
+
+- demo mode with a manual slider
+- assessment mode driven by the computed survey score
+
+Primary implementation:
+
+- `src/components/StressToCalmPreview.tsx`
+- `src/types/flubber.d.ts`
+
+### 4. Intervention Guide
+
+The intervention guide is a modal that opens after the user receives a score. It maps that score to a stress tier and then offers four kinds of support.
+
+#### Breathing
+
+Guided breathing patterns vary by stress level, including:
+
+- `4-4`
+- `4-5`
+- `4-2-6`
+- `4-7`
+- `4-8`
+
+#### Sound
+
+The sound section uses lightweight synthesized audio through the browser Web Audio API and also presents recommendations for sound environments such as:
+
+- forest ambience
+- ocean waves
+- low ambient tones
+- brown noise
+- heartbeat-based audio
+
+#### Visual
+
+The visual method uses animated transitions and calming palette suggestions to symbolically move from stress to calm.
+
+#### Advice
+
+The advice method presents step-by-step grounding or coping exercises tailored to the selected tier.
+
+Primary implementation:
+
+- `src/components/InterventionGuide.tsx`
+
+### 5. Demo Authentication
+
+The app includes register and login pages, but authentication is entirely front-end only.
+
+Users are stored in `localStorage` under app-specific keys, and the current user is also stored locally. This makes the flow suitable for demonstration only.
+
+Important limitations:
+
+- passwords are not encrypted
+- there is no server validation
+- there are no protected backend resources
+- clearing browser storage removes the local account state
+
+Primary implementation:
+
+- `src/services/auth.ts`
+- `src/app/login/page.tsx`
+- `src/app/register/page.tsx`
+- `src/components/Navbar.tsx`
+
+## Stress Scoring Model
+
+The implemented scoring model sums weighted responses from the first five survey questions:
+
+- Q1 Emotion: max `20`
+- Q2 Body Response: max `25`
+- Q3 Stress Persistence: max `30`
+- Q4 World Perception: max `15`
+- Q5 Visual Effect: max `10`
+
+Formula:
+
+```text
+Stress Score = E + B + P + W + V
+```
+
+The score is then capped at `100`.
+
+Primary implementation:
+
+- `src/components/StressSurvey.tsx`
+
+## Stress Range Source Of Truth
+
+The project uses `stress_intervention_guide.txt` as the source of truth for stress ranges:
+
+- `0-39` Low Stress
+- `40-59` Mild Stress
+- `60-74` Moderate Stress
+- `75-89` High Stress
+- `90-100` Severe Stress
+
+Those ranges are reflected in the runtime UI:
+
+- `src/components/StressToCalmPreview.tsx`
+- `src/components/InterventionGuide.tsx`
+
+The file `score.txt` exists in the repository as local reference material, but it should not be treated as the authoritative source for tier interpretation.
+
+## Project Structure
+
+```text
+stress-visualizer-web/
+├─ public/
+├─ src/
+│  ├─ app/
+│  │  ├─ login/
+│  │  ├─ register/
+│  │  ├─ favicon.ico
+│  │  ├─ globals.css
+│  │  ├─ layout.tsx
+│  │  ├─ page.module.css
+│  │  ├─ page.tsx
+│  │  └─ template.tsx
+│  ├─ components/
+│  │  ├─ BreathingButton.tsx
+│  │  ├─ CalmBackground.tsx
+│  │  ├─ CalmRipple.tsx
+│  │  ├─ InterventionGuide.tsx
+│  │  ├─ Navbar.tsx
+│  │  ├─ StressSurvey.tsx
+│  │  ├─ StressToCalmPreview.tsx
+│  │  └─ TiltCard.tsx
+│  ├─ hooks/
+│  │  └─ useCalmSound.ts
+│  ├─ services/
+│  │  └─ auth.ts
+│  └─ types/
+│     └─ flubber.d.ts
+├─ extended_stress_survey.txt
+├─ read_pdf.js
+├─ score.txt
+├─ stress_intervention_guide.txt
+├─ stress_scoring_system.pdf
+├─ next.config.ts
+├─ package.json
+└─ tsconfig.json
+```
+
+## Key Files
+
+### Runtime files
+
+- `src/app/page.tsx`: main page and feature orchestration
+- `src/components/StressSurvey.tsx`: survey content and score calculation
+- `src/components/StressToCalmPreview.tsx`: animated visualizer
+- `src/components/InterventionGuide.tsx`: tier-based support modal
+- `src/services/auth.ts`: client-only demo authentication
+- `src/components/Navbar.tsx`: auth state display and animation pause toggle
+
+### Supporting files
+
+- `src/components/BreathingButton.tsx`: animated CTA button with ripple effect
+- `src/components/TiltCard.tsx`: hover tilt for feature cards
+- `src/app/globals.css`: primary global styling
+- `src/app/layout.tsx`: app shell and metadata
+- `src/app/template.tsx`: route transition animation wrapper
+
+### Research and scratch files
+
+- `score.txt`: scoring note and score interpretation note
+- `stress_intervention_guide.txt`: intervention tier source note
+- `extended_stress_survey.txt`: text version of the broader survey content
+- `stress_scoring_system.pdf`: scoring reference document
+- `read_pdf.js`: helper script used to extract PDF text locally
+
+## Technology Stack
+
+### Framework
+
+- Next.js `16.1.4`
+- React `19.2.3`
+- TypeScript
+
+### Animation and UI
+
+- Framer Motion
+- Flubber for SVG path interpolation
+
+### Miscellaneous
+
+- `pdf-parse` for local document extraction work
+- `use-sound` installed, but not meaningfully active in the current UI
+
+## Styling Approach
+
+The project uses custom CSS rather than a formal component library.
+
+The visual direction includes:
+
+- pastel and teal-blue gradients
+- glassmorphism panels
+- soft shadows
+- rounded surfaces
+- slow motion transitions
+- calming interaction affordances
+
+The app also includes a global `animation-paused` mode controlled from the navbar, which pauses CSS animations for users who want less motion.
+
+## Development
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Build for production
 
-## Learn More
+```bash
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Start the production server
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Run lint checks
 
-## Deploy on Vercel
+```bash
+npm run lint
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Current Repository Status
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+At the current repository state:
+
+- `npm run build` succeeds
+- `npm run lint` does not pass cleanly
+
+The lint issues are mostly related to:
+
+- React purity and effect rules
+- `any` usage
+- unescaped entities in JSX
+- unused code and leftover experimental pieces
+
+## Known Limitations
+
+### Product limitations
+
+- The app is educational, not clinical.
+- The survey is not validated as a medical instrument.
+- The intervention content is presented as guidance, not treatment.
+
+### Technical limitations
+
+- Authentication is front-end only.
+- Credentials are stored in browser `localStorage`.
+- No backend or persistence layer exists.
+- No real audio playback is implemented in the intervention flow.
+- Some files in the repository are research or scratch artifacts rather than production code.
+- The README was previously a default template, which means project documentation lagged behind implementation.
+
+### Consistency limitations
+
+- Some repository notes are scratch/reference material rather than active product specification.
+- The repository contains leftover starter and experimental files such as `page.module.css` and `CalmBackground.tsx`.
+
+## Notes On Unused Or Partial Pieces
+
+- `src/components/CalmBackground.tsx` exists but is not currently used by the app.
+- `src/hooks/useCalmSound.ts` currently returns no-op sound handlers.
+- `src/app/page.module.css` appears to be starter residue and is not part of the current home page implementation.
+
+## Intended Audience
+
+This project appears most suitable for:
+
+- academic demonstration
+- concept validation
+- front-end prototyping
+- symbolic UX exploration for stress education
+
+It is not yet suitable for:
+
+- clinical deployment
+- real account systems
+- production therapy tooling
+- secure user data handling
+
+## Authors
+
+The footer credits:
+
+- Ahmed Talal Wazih
+- Fahad Bin Aziz Nabil
+- Abid Al Hossain
+
+## Summary
+
+Stress-to-Calm Visualizer is a polished front-end prototype that combines survey scoring, animated symbolic visualization, and tier-based calming guidance into a single interactive experience.
+
+Its strongest qualities are:
+
+- clear concept
+- strong visual storytelling
+- ambitious animation work
+- coherent educational framing
+
+Its biggest gaps are:
+
+- demo-only authentication
+- incomplete production cleanup
+- missing backend and persistence infrastructure

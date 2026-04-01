@@ -6,11 +6,11 @@ import { interpolate } from "flubber";
 
 // ── Tier config ────────────────────────────────────────────────────────────────
 const TIERS = [
-  { min: 0,  max: 39,  label: "Low Stress",      shortLabel: "Low",      color: "#38bdf8", glow: "rgba(56,189,248,0.55)",  skinHue: "#fef3c7", bg: "#0a1929" },
-  { min: 40, max: 59,  label: "Mild Stress",      shortLabel: "Mild",     color: "#4ade80", glow: "rgba(74,222,128,0.55)",  skinHue: "#fde8a0", bg: "#081a12" },
-  { min: 60, max: 74,  label: "Moderate Stress",  shortLabel: "Moderate", color: "#facc15", glow: "rgba(250,204,21,0.55)",  skinHue: "#fce89a", bg: "#16130a" },
-  { min: 75, max: 89,  label: "High Stress",      shortLabel: "High",     color: "#fb923c", glow: "rgba(251,146,60,0.55)",  skinHue: "#fdd0a0", bg: "#1a1005" },
-  { min: 90, max: 100, label: "Severe Stress",    shortLabel: "Severe",   color: "#f87171", glow: "rgba(248,113,113,0.55)", skinHue: "#ffc0b0", bg: "#1a0808" },
+  { min: 0,  max: 39,  label: "Low Stress",      shortLabel: "Low",      color: "#38bdf8", glow: "rgba(56,189,248,0.55)",  skinHue: "#fef3c7", bg: "#eef8ff" },
+  { min: 40, max: 59,  label: "Mild Stress",      shortLabel: "Mild",     color: "#4ade80", glow: "rgba(74,222,128,0.55)",  skinHue: "#fde8a0", bg: "#eefcf4" },
+  { min: 60, max: 74,  label: "Moderate Stress",  shortLabel: "Moderate", color: "#facc15", glow: "rgba(250,204,21,0.55)",  skinHue: "#fce89a", bg: "#fffbea" },
+  { min: 75, max: 89,  label: "High Stress",      shortLabel: "High",     color: "#fb923c", glow: "rgba(251,146,60,0.55)",  skinHue: "#fdd0a0", bg: "#fff4ea" },
+  { min: 90, max: 100, label: "Severe Stress",    shortLabel: "Severe",   color: "#f87171", glow: "rgba(248,113,113,0.55)", skinHue: "#ffc0b0", bg: "#fff1f2" },
 ];
 function getTier(s: number) { return TIERS.find(t => s >= t.min && s <= t.max) ?? TIERS[0]; }
 
@@ -289,39 +289,44 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
   const skinShadow   = stressLevel > 70 ? "#e8a88a" : "#f5d5a8";
   const eyeWhite     = stressLevel > 74 ? "#fff5f5" : "white";
   const browColor    = stressLevel > 59 ? "#6b3a1f" : "#7a4528";
+  const panelMuted = "#6a7f92";
+  const panelFaint = "#90a4b8";
+  const panelSurface = "rgba(255,255,255,0.62)";
+  const panelSurfaceStrong = "rgba(255,255,255,0.76)";
+  const panelBorder = "rgba(90,155,212,0.18)";
 
   return (
     <div style={{
-      width: "100%", maxWidth: "620px", margin: "2rem auto",
-      borderRadius: "28px",
-      background: `linear-gradient(160deg, ${tier.bg} 0%, #0d1117 100%)`,
-      border: "1px solid rgba(255,255,255,0.07)",
-      boxShadow: `0 0 80px ${tier.glow.replace("0.55","0.15")}, 0 24px 64px rgba(0,0,0,0.7)`,
-      padding: "2rem 2rem 1.4rem",
+      width: "100%", maxWidth: "500px", margin: "1rem auto",
+      borderRadius: "22px",
+      background: `linear-gradient(160deg, ${tier.bg} 0%, rgba(255,255,255,0.94) 100%)`,
+      border: "1px solid rgba(255,255,255,0.75)",
+      boxShadow: `0 18px 48px rgba(90,155,212,0.18), 0 0 44px ${tier.glow.replace("0.55","0.12")}`,
+      padding: "0.8rem 0.8rem 0.7rem",
       position: "relative", overflow: "hidden",
       transition: "background 0.8s, box-shadow 0.8s",
     }}>
       {/* Tech grid bg */}
-      <div style={{ position:"absolute", inset:0, opacity:0.035, pointerEvents:"none",
+      <div style={{ position:"absolute", inset:0, opacity:0.05, pointerEvents:"none",
         backgroundImage: `linear-gradient(${tier.color} 1px, transparent 1px), linear-gradient(90deg, ${tier.color} 1px, transparent 1px)`,
         backgroundSize:"30px 30px", transition:"background-image 0.8s" }} />
 
       {/* Header */}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"1rem", position:"relative", zIndex:2 }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"0.45rem", position:"relative", zIndex:2, gap:"0.5rem" }}>
         <div>
-          <p style={{ fontSize:"0.62rem", fontFamily:"monospace", color:tier.color, letterSpacing:"0.2em", textTransform:"uppercase", opacity:0.85, marginBottom:"0.15rem" }}>
+          <p style={{ fontSize:"0.68rem", fontFamily:"monospace", color:tier.color, letterSpacing:"0.16em", textTransform:"uppercase", opacity:0.85, marginBottom:"0.12rem" }}>
             Stress-to-Calm · Mental State
           </p>
-          <p style={{ fontSize:"0.68rem", fontFamily:"monospace", color:"rgba(255,255,255,0.3)", letterSpacing:"0.08em" }}>
+          <p style={{ fontSize:"0.78rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.05em" }}>
             {externalScore !== null ? "Assessment Result" : "Demo · drag the slider"}
           </p>
         </div>
         <motion.div key={tier.label}
           initial={{ opacity:0, scale:0.8 }} animate={{ opacity:1, scale:1 }}
-          style={{ display:"flex", alignItems:"center", gap:"0.5rem", padding:"0.38rem 1rem",
-            borderRadius:"99px", background:`${tier.color}18`, border:`1px solid ${tier.color}44` }}>
+          style={{ display:"flex", alignItems:"center", gap:"0.42rem", padding:"0.3rem 0.72rem",
+            borderRadius:"99px", background:panelSurfaceStrong, border:`1px solid ${tier.color}44`, boxShadow:"0 8px 24px rgba(90,155,212,0.08)" }}>
           <span style={{ fontSize:"1rem" }}>{stressLevel <= 39 ? "😌" : stressLevel <= 59 ? "🙂" : stressLevel <= 74 ? "😐" : stressLevel <= 89 ? "😟" : "😰"}</span>
-          <span style={{ fontSize:"0.72rem", fontWeight:700, color:tier.color, fontFamily:"monospace", textTransform:"uppercase", letterSpacing:"0.1em" }}>
+          <span style={{ fontSize:"0.76rem", fontWeight:700, color:tier.color, fontFamily:"monospace", textTransform:"uppercase", letterSpacing:"0.08em" }}>
             {tier.label}
           </span>
         </motion.div>
@@ -329,7 +334,7 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
 
       {/* ── FACE SVG ── */}
       <div style={{ position:"relative", zIndex:2, display:"flex", justifyContent:"center" }}>
-        <svg viewBox="0 0 200 240" width="300" height="360" style={{ display:"block", overflow:"visible" }}>
+        <svg viewBox="0 0 200 240" width="184" height="220" style={{ display:"block", overflow:"visible", width:"min(184px, 100%)", height:"auto", marginTop:"-0.35rem", marginBottom:"-0.1rem" }}>
           <defs>
             {/* Skin gradient */}
             <radialGradient id="skinGrad" cx="42%" cy="38%" r="60%">
@@ -358,14 +363,6 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
               <feGaussianBlur stdDeviation="2" result="blur"/>
               <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
-            {/* Hair gradient */}
-            <linearGradient id="hairGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%"   stopColor="#2d1a0a" />
-              <stop offset="100%" stopColor="#1a0d05" />
-            </linearGradient>
-            <clipPath id="faceClip">
-              <motion.path d={faceD} />
-            </clipPath>
           </defs>
 
           {/* Aura behind face */}
@@ -384,16 +381,6 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
               transition={{ duration: stressLevel > 74 ? 1.2 : 2, repeat: Infinity, ease:"easeInOut" }}
             />
           )}
-
-          {/* Hair */}
-          <motion.path
-            d="M 52,100 C 48,70 55,48 100,42 C 145,48 152,70 148,100 C 145,75 140,62 100,59 C 60,62 55,75 52,100 Z"
-            fill="url(#hairGrad)"
-            animate={{ fill: "#2d1a0a" }}
-          />
-          {/* Side hair */}
-          <path d="M 42,108 C 38,95 44,75 52,65 C 50,80 48,100 42,115 Z" fill="#1a0d05" />
-          <path d="M 158,108 C 162,95 156,75 148,65 C 150,80 152,100 158,115 Z" fill="#1a0d05" />
 
           {/* ── FACE SKIN ── */}
           <motion.path d={faceD} fill="url(#skinGrad)" stroke={skinShadow} strokeWidth="0.5" />
@@ -554,34 +541,35 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
 
         {/* Score badge over face */}
         <div style={{
-          position:"absolute", bottom:"24px", left:"50%", transform:"translateX(-50%)",
-          background:"rgba(0,0,0,0.5)", backdropFilter:"blur(12px)",
-          borderRadius:"99px", padding:"0.3rem 1.1rem",
+          position:"absolute", bottom:"8px", left:"50%", transform:"translateX(-50%)",
+          background:panelSurfaceStrong, backdropFilter:"blur(12px)",
+          borderRadius:"99px", padding:"0.2rem 0.72rem",
           border:`1px solid ${tier.color}44`, display:"flex", alignItems:"center", gap:"0.4rem",
+          boxShadow:"0 10px 24px rgba(90,155,212,0.12)",
         }}>
           <motion.span animate={{ color: tier.color, textShadow:`0 0 12px ${tier.color}` }}
             transition={{ duration:0.5 }}
-            style={{ fontSize:"1.5rem", fontWeight:900, fontFamily:"monospace" }}>
+            style={{ fontSize:"1.15rem", fontWeight:900, fontFamily:"monospace" }}>
             <AnimatedCount value={stressLevel} />
           </motion.span>
-          <span style={{ fontSize:"0.7rem", fontFamily:"monospace", color:"rgba(255,255,255,0.35)", letterSpacing:"0.1em" }}>/100</span>
+          <span style={{ fontSize:"0.78rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.08em" }}>/100</span>
         </div>
       </div>
 
       {/* ── EEG BRAINWAVE STRIP ── */}
-      <div style={{ marginTop:"0.5rem", background:"rgba(0,0,0,0.3)", borderRadius:"12px",
-        border:"1px solid rgba(255,255,255,0.06)", padding:"0.5rem 1rem",
+      <div style={{ marginTop:"0.05rem", background:panelSurface, borderRadius:"13px",
+        border:`1px solid ${panelBorder}`, padding:"0.26rem 0.55rem",
         overflow:"hidden", position:"relative", zIndex:2 }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"0.25rem" }}>
-          <span style={{ fontSize:"0.58rem", fontFamily:"monospace", color:"rgba(255,255,255,0.28)", letterSpacing:"0.15em", textTransform:"uppercase" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"0.18rem" }}>
+          <span style={{ fontSize:"0.64rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.12em", textTransform:"uppercase" }}>
             EEG · Stress Oscillation
           </span>
           <motion.span animate={{ opacity:[1, 0.3, 1] }} transition={{ duration:1, repeat:Infinity }}
-            style={{ fontSize:"0.58rem", fontFamily:"monospace", color:tier.color }}>
+            style={{ fontSize:"0.64rem", fontFamily:"monospace", color:tier.color }}>
             ● LIVE
           </motion.span>
         </div>
-        <svg width="100%" height="46" viewBox="0 0 540 46" preserveAspectRatio="none">
+        <svg width="100%" height="32" viewBox="0 0 540 46" preserveAspectRatio="none">
           <defs>
             <linearGradient id="eegGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%"   stopColor={tier.color} stopOpacity="0"/>
@@ -594,31 +582,31 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
             fill="none" stroke={tier.color} strokeWidth="1" opacity="0.12" strokeLinecap="round" />
           <path d={generateWave(stressLevel, 540, 46, waveSeed)}
             fill="none" stroke="url(#eegGrad)" strokeWidth="1.8" strokeLinecap="round" />
-          <line x1="0" y1="23" x2="540" y2="23" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="3 3"/>
+          <line x1="0" y1="23" x2="540" y2="23" stroke="rgba(40,68,94,0.08)" strokeWidth="1" strokeDasharray="3 3"/>
         </svg>
       </div>
 
       {/* ── 5 TIER PILLS ── */}
-      <div style={{ display:"flex", justifyContent:"space-between", marginTop:"0.85rem",
-        gap:"0.3rem", position:"relative", zIndex:2, padding:"0.6rem 0.75rem",
-        background:"rgba(255,255,255,0.025)", borderRadius:"12px",
-        border:"1px solid rgba(255,255,255,0.05)"}}>
+      <div style={{ display:"flex", justifyContent:"space-between", marginTop:"0.32rem",
+        gap:"0.18rem", position:"relative", zIndex:2, padding:"0.28rem 0.34rem",
+        background:panelSurface, borderRadius:"13px",
+        border:`1px solid ${panelBorder}`}}>
         {TIERS.map((t, i) => {
           const active = stressLevel >= t.min && stressLevel <= t.max;
           return (
-            <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:"0.28rem" }}>
+            <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:"0.18rem" }}>
               <motion.div animate={{
                 background: active ? t.color : "transparent",
                 boxShadow: active ? `0 0 10px ${t.glow}` : "none",
                 scale: active ? 1.25 : 1,
               }} transition={{ duration:0.4 }} style={{
-                width:9, height:9, borderRadius:"50%",
+                width:7, height:7, borderRadius:"50%",
                 border:`2px solid ${active ? t.color : "rgba(255,255,255,0.12)"}`,
                 transition:"border-color 0.4s",
               }} />
               <span style={{
                 fontSize:"0.5rem", fontFamily:"monospace", textTransform:"uppercase",
-                color: active ? t.color : "rgba(255,255,255,0.18)",
+                color: active ? t.color : panelFaint,
                 letterSpacing:"0.04em", textAlign:"center", fontWeight: active ? 700 : 400,
                 transition:"color 0.4s",
               }}>{t.shortLabel}</span>
@@ -629,19 +617,19 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
 
       {/* ── SLIDER ── */}
       {externalScore === null && (
-        <div style={{ marginTop:"0.85rem", position:"relative", zIndex:2 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"0.35rem" }}>
-            <span style={{ fontSize:"0.58rem", fontFamily:"monospace", color:"rgba(255,255,255,0.3)", letterSpacing:"0.12em" }}>CALM</span>
-            <span style={{ fontSize:"0.58rem", fontFamily:"monospace", color:"rgba(255,255,255,0.3)", letterSpacing:"0.12em" }}>CRITICAL</span>
+        <div style={{ marginTop:"0.42rem", position:"relative", zIndex:2 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"0.24rem" }}>
+            <span style={{ fontSize:"0.64rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.1em" }}>CALM</span>
+            <span style={{ fontSize:"0.64rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.1em" }}>CRITICAL</span>
           </div>
           <input type="range" min="0" max="100" value={stressLevel}
             onChange={e => setStressLevel(Number(e.target.value))}
-            style={{ width:"100%", height:"6px", borderRadius:"99px",
+            style={{ width:"100%", height:"5px", borderRadius:"99px",
               appearance:"none", outline:"none", cursor:"pointer",
-              background:`linear-gradient(to right, ${tier.color} ${stressLevel}%, rgba(255,255,255,0.07) ${stressLevel}%)`,
+              background:`linear-gradient(to right, ${tier.color} ${stressLevel}%, rgba(40,68,94,0.08) ${stressLevel}%)`,
               accentColor: tier.color }} />
-          <p style={{ textAlign:"center", fontSize:"0.58rem", fontFamily:"monospace",
-            color:"rgba(255,255,255,0.18)", marginTop:"0.4rem", letterSpacing:"0.1em" }}>
+          <p style={{ textAlign:"center", fontSize:"0.64rem", fontFamily:"monospace",
+            color:panelMuted, marginTop:"0.2rem", letterSpacing:"0.08em" }}>
             DRAG TO EXPLORE STRESS STATES
           </p>
         </div>
@@ -650,7 +638,7 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
       {externalScore !== null && (
         <motion.p initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.9 }}
           style={{ textAlign:"center", fontSize:"0.62rem", fontFamily:"monospace",
-            color:"rgba(255,255,255,0.22)", marginTop:"0.85rem", letterSpacing:"0.1em",
+            color:panelMuted, marginTop:"0.7rem", letterSpacing:"0.1em",
             position:"relative", zIndex:2 }}>
           ↑ Visualizer updated from your assessment · scroll down for your personalized solution
         </motion.p>
