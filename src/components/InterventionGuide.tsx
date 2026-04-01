@@ -189,24 +189,270 @@ function BreathingGuide({ tier }: { tier: Tier }) {
 }
 
 // ─── Sound Guide ──────────────────────────────────────────────────────────────
+
+// Procedural audio engine using Web Audio API
+function createAudio(waveType: string): { stop: () => void } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0, ctx.currentTime);
+    master.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 1.2);
+    master.connect(ctx.destination);
+
+    const nodes: AudioNode[] = [master];
+
+    if (waveType === "calm") {
+      // Forest ambience: high-pass filtered noise (wind) + gentle sine tones (birds)
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 3, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.15;
+      const noise = ctx.createBufferSource();
+      noise.buffer = buf;
+      noise.loop = true;
+      const hp = ctx.createBiquadFilter();
+      hp.type = "highpass";
+      hp.frequency.value = 1200;
+      hp.Q.value = 0.5;
+      noise.connect(hp);
+      hp.connect(master);
+      noise.start();
+      nodes.push(noise, hp);
+
+      // Birdsong: gentle sine chirps at intervals
+      const birdFreqs = [1800, 2200, 1600, 2600, 1400];
+      birdFreqs.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        g.gain.setValueAtTime(0, ctx.currentTime);
+        const startDelay = 1.5 + i * 2.3;
+        g.gain.setValueAtTime(0, ctx.currentTime + startDelay);
+        g.gain.linearRampToValueAtTime(0.06, ctx.currentTime + startDelay + 0.05);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startDelay + 0.35);
+        osc.connect(g);
+        g.connect(master);
+        osc.start();
+        nodes.push(osc, g);
+      });
+
+    } else if (waveType === "gentle") {
+      // Ocean waves: band-pass noise with slow LFO amplitude cycling
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 4, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      const noise = ctx.createBufferSource();
+      noise.buffer = buf;
+      noise.loop = true;
+      const bp = ctx.createBiquadFilter();
+      bp.type = "bandpass";
+      bp.frequency.value = 400;
+      bp.Q.value = 0.8;
+      const waveGain = ctx.createGain();
+      waveGain.gain.value = 0.4;
+      noise.connect(bp);
+      bp.connect(waveGain);
+      waveGain.connect(master);
+      noise.start();
+      nodes.push(noise, bp, waveGain);
+
+      // LFO to simulate wave swell (period ~8 s)
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.type = "sine";
+      lfo.frequency.value = 0.12;
+      lfoGain.gain.value = 0.35;
+      lfo.connect(lfoGain);
+      lfoGain.connect(waveGain.gain);
+      lfo.start();
+      nodes.push(lfo, lfoGain);
+
+      // Soft rain: high-pass noise layer at low volume
+      const buf2 = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+      const d2 = buf2.getChannelData(0);
+      for (let i = 0; i < d2.length; i++) d2[i] = Math.random() * 2 - 1;
+      const rain = ctx.createBufferSource();
+      rain.buffer = buf2;
+      rain.loop = true;
+      const rainHp = ctx.createBiquadFilter();
+      rainHp.type = "highpass";
+      rainHp.frequency.value = 3000;
+      const rainGain = ctx.createGain();
+      rainGain.gain.value = 0.12;
+      rain.connect(rainHp);
+      rainHp.connect(rainGain);
+      rainGain.connect(master);
+      rain.start();
+      nodes.push(rain, rainHp, rainGain);
+
+    } else if (waveType === "rhythmic") {
+      // Ambient guided tones: slow sine drone + soft rhythmic pulse
+      const drone = ctx.createOscillator();
+      const droneGain = ctx.createGain();
+      drone.type = "sine";
+      drone.frequency.value = 110; // A2
+      droneGain.gain.value = 0.18;
+      drone.connect(droneGain);
+      droneGain.connect(master);
+      drone.start();
+      nodes.push(drone, droneGain);
+
+      const drone2 = ctx.createOscillator();
+      const drone2Gain = ctx.createGain();
+      drone2.type = "triangle";
+      drone2.frequency.value = 165; // E3 — harmonious fifth
+      drone2Gain.gain.value = 0.1;
+      drone2.connect(drone2Gain);
+      drone2Gain.connect(master);
+      drone2.start();
+      nodes.push(drone2, drone2Gain);
+
+      // Slow pulse every ~6 s (breathing guide tempo)
+      const pulseGain = ctx.createGain();
+      pulseGain.gain.value = 0;
+      pulseGain.connect(master);
+      const pulseosc = ctx.createOscillator();
+      pulseosc.type = "sine";
+      pulseosc.frequency.value = 220;
+      pulseosc.connect(pulseGain);
+      pulseosc.start();
+      nodes.push(pulseosc, pulseGain);
+
+      let t = ctx.currentTime + 2;
+      for (let i = 0; i < 20; i++) {
+        pulseGain.gain.setValueAtTime(0, t);
+        pulseGain.gain.linearRampToValueAtTime(0.12, t + 0.3);
+        pulseGain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+        t += 6;
+      }
+
+    } else if (waveType === "deep") {
+      // Brown noise + low bass hum
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 4, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < data.length; i++) {
+        const white = Math.random() * 2 - 1;
+        last = (last + 0.02 * white) / 1.02;
+        data[i] = last * 18; // brown noise approximation
+      }
+      const brown = ctx.createBufferSource();
+      brown.buffer = buf;
+      brown.loop = true;
+      const lp = ctx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 300;
+      const brownGain = ctx.createGain();
+      brownGain.gain.value = 0.55;
+      brown.connect(lp);
+      lp.connect(brownGain);
+      brownGain.connect(master);
+      brown.start();
+      nodes.push(brown, lp, brownGain);
+
+      // Bass hum — sub-bass sine
+      const bass = ctx.createOscillator();
+      const bassGain = ctx.createGain();
+      bass.type = "sine";
+      bass.frequency.value = 55; // A1 — deep grounding hum
+      bassGain.gain.value = 0.22;
+      bass.connect(bassGain);
+      bassGain.connect(master);
+      bass.start();
+      nodes.push(bass, bassGain);
+
+    } else {
+      // Minimal: slow heartbeat at 58 BPM (~1.03 s interval)
+      const beatInterval = 60 / 58;
+      const beatGain = ctx.createGain();
+      beatGain.gain.value = 0;
+      beatGain.connect(master);
+      const beatOsc = ctx.createOscillator();
+      beatOsc.type = "sine";
+      beatOsc.frequency.value = 80;
+      beatOsc.connect(beatGain);
+      beatOsc.start();
+      nodes.push(beatOsc, beatGain);
+
+      // Lub-dub pattern
+      let t = ctx.currentTime + 0.5;
+      for (let i = 0; i < 60; i++) {
+        // Lub
+        beatGain.gain.setValueAtTime(0, t);
+        beatGain.gain.linearRampToValueAtTime(0.45, t + 0.04);
+        beatGain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+        // Dub (slightly softer, 0.25 s after)
+        beatGain.gain.setValueAtTime(0, t + 0.25);
+        beatGain.gain.linearRampToValueAtTime(0.28, t + 0.29);
+        beatGain.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
+        t += beatInterval;
+      }
+
+      // Ambient silence pad — very soft background sine
+      const pad = ctx.createOscillator();
+      const padGain = ctx.createGain();
+      pad.type = "sine";
+      pad.frequency.value = 40;
+      padGain.gain.value = 0.05;
+      pad.connect(padGain);
+      padGain.connect(master);
+      pad.start();
+      nodes.push(pad, padGain);
+    }
+
+    return {
+      stop: () => {
+        master.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8);
+        setTimeout(() => {
+          nodes.forEach(n => { try { (n as AudioBufferSourceNode).stop?.(); } catch { /* already stopped */ } });
+          ctx.close();
+        }, 900);
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
 function SoundGuide({ tier }: { tier: Tier }) {
   const [active, setActive] = useState(false);
+  const audioRef = useRef<{ stop: () => void } | null>(null);
   const barCount = 28;
 
-  // Base wave heights per type
+  const toggle = () => {
+    if (active) {
+      audioRef.current?.stop();
+      audioRef.current = null;
+      setActive(false);
+    } else {
+      audioRef.current = createAudio(tier.waveType);
+      setActive(true);
+    }
+  };
+
+  // Stop audio when component unmounts
+  useEffect(() => {
+    return () => { audioRef.current?.stop(); };
+  }, []);
+
+  // Base wave heights per type (visual only)
   const waveProfiles: Record<string, number[]> = {
-    calm: [0.2, 0.3, 0.25, 0.4, 0.3, 0.2, 0.35, 0.25, 0.3, 0.2, 0.25, 0.3, 0.2, 0.25, 0.3, 0.35, 0.2, 0.3, 0.25, 0.35, 0.2, 0.3, 0.25, 0.2, 0.3, 0.25, 0.2, 0.3],
-    gentle: [0.3, 0.5, 0.4, 0.6, 0.5, 0.3, 0.55, 0.45, 0.5, 0.35, 0.5, 0.6, 0.4, 0.45, 0.55, 0.5, 0.35, 0.55, 0.4, 0.6, 0.35, 0.5, 0.45, 0.35, 0.55, 0.4, 0.35, 0.5],
+    calm:     [0.2, 0.3, 0.25, 0.4, 0.3, 0.2, 0.35, 0.25, 0.3, 0.2, 0.25, 0.3, 0.2, 0.25, 0.3, 0.35, 0.2, 0.3, 0.25, 0.35, 0.2, 0.3, 0.25, 0.2, 0.3, 0.25, 0.2, 0.3],
+    gentle:   [0.3, 0.5, 0.4, 0.6, 0.5, 0.3, 0.55, 0.45, 0.5, 0.35, 0.5, 0.6, 0.4, 0.45, 0.55, 0.5, 0.35, 0.55, 0.4, 0.6, 0.35, 0.5, 0.45, 0.35, 0.55, 0.4, 0.35, 0.5],
     rhythmic: [0.4, 0.7, 0.5, 0.8, 0.6, 0.4, 0.75, 0.55, 0.7, 0.45, 0.7, 0.8, 0.5, 0.6, 0.75, 0.65, 0.45, 0.75, 0.5, 0.8, 0.45, 0.7, 0.55, 0.45, 0.75, 0.5, 0.45, 0.7],
-    deep: [0.7, 0.85, 0.75, 0.9, 0.8, 0.7, 0.85, 0.75, 0.8, 0.7, 0.8, 0.9, 0.75, 0.8, 0.85, 0.8, 0.7, 0.85, 0.75, 0.9, 0.7, 0.8, 0.75, 0.7, 0.85, 0.75, 0.7, 0.8],
-    minimal: [0.15, 0.2, 0.15, 0.25, 0.2, 0.15, 0.2, 0.15, 0.2, 0.15, 0.2, 0.25, 0.15, 0.2, 0.25, 0.2, 0.15, 0.25, 0.15, 0.2, 0.15, 0.2, 0.15, 0.15, 0.2, 0.15, 0.15, 0.2],
+    deep:     [0.7, 0.85, 0.75, 0.9, 0.8, 0.7, 0.85, 0.75, 0.8, 0.7, 0.8, 0.9, 0.75, 0.8, 0.85, 0.8, 0.7, 0.85, 0.75, 0.9, 0.7, 0.8, 0.75, 0.7, 0.85, 0.75, 0.7, 0.8],
+    minimal:  [0.15, 0.2, 0.15, 0.25, 0.2, 0.15, 0.2, 0.15, 0.2, 0.15, 0.2, 0.25, 0.15, 0.2, 0.25, 0.2, 0.15, 0.25, 0.15, 0.2, 0.15, 0.2, 0.15, 0.15, 0.2, 0.15, 0.15, 0.2],
   };
   const base = waveProfiles[tier.waveType];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.5rem" }}>
-      {/* Waveform visualiser */}
-      <div style={{ width: "100%", maxWidth: "440px", height: "100px", display: "flex", alignItems: "center", justifyContent: "center", gap: "3px", padding: "0 1rem", background: "rgba(255,255,255,0.4)", borderRadius: "18px", border: "1px solid rgba(90,155,212,0.15)", cursor: "pointer" }} onClick={() => setActive(a => !a)}>
+      {/* Waveform visualiser — click to toggle audio too */}
+      <div
+        style={{ width: "100%", maxWidth: "440px", height: "100px", display: "flex", alignItems: "center", justifyContent: "center", gap: "3px", padding: "0 1rem", background: "rgba(255,255,255,0.4)", borderRadius: "18px", border: "1px solid rgba(90,155,212,0.15)", cursor: "pointer" }}
+        onClick={toggle}
+      >
         {Array.from({ length: barCount }, (_, i) => {
           const h = base[i] ?? 0.3;
           return (
@@ -219,9 +465,18 @@ function SoundGuide({ tier }: { tier: Tier }) {
         })}
       </div>
 
-      <button onClick={() => setActive(a => !a)} style={{ background: active ? `linear-gradient(135deg, ${tier.color}, ${tier.dimColor})` : "rgba(255,255,255,0.5)", border: `1.5px solid ${tier.color}66`, borderRadius: "99px", color: active ? "white" : tier.dimColor, padding: "0.65rem 2rem", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700, transition: "all 0.3s", boxShadow: active ? `0 6px 20px ${tier.glow}` : "none" }}>
-        {active ? "⏸ Pause Visualizer" : "▶ Animate Waveform"}
+      <button
+        onClick={toggle}
+        style={{ background: active ? `linear-gradient(135deg, ${tier.color}, ${tier.dimColor})` : "rgba(255,255,255,0.5)", border: `1.5px solid ${tier.color}66`, borderRadius: "99px", color: active ? "white" : tier.dimColor, padding: "0.65rem 2rem", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700, transition: "all 0.3s", boxShadow: active ? `0 6px 20px ${tier.glow}` : "none" }}
+      >
+        {active ? "⏸ Stop Sound" : "▶ Play Sound"}
       </button>
+
+      {active && (
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ fontSize: "0.78rem", color: "#90a4ae", textAlign: "center" }}>
+          🎧 Use headphones for best experience
+        </motion.p>
+      )}
 
       <div style={{ width: "100%", maxWidth: "420px", background: "rgba(255,255,255,0.55)", borderRadius: "16px", padding: "1.25rem", border: "1px solid rgba(90,155,212,0.15)" }}>
         <p style={{ fontWeight: 700, color: "#2c3e50", marginBottom: "0.5rem", fontSize: "1rem" }}>🎵 {tier.soundName}</p>
@@ -231,15 +486,15 @@ function SoundGuide({ tier }: { tier: Tier }) {
         </div>
       </div>
 
-      {/* Sound type badge */}
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "center" }}>
-        {(tier.waveType === "calm" ? ["Nature sounds", "Binaural theta", "Soft rain"] : tier.waveType === "gentle" ? ["Ocean waves", "Light rain", "Soft instrumental"] : tier.waveType === "rhythmic" ? ["Ambient pulse", "Low drone", "Guided tones"] : tier.waveType === "deep" ? ["Brown noise", "Bass hum", "Deep rumble"] : ["Slow pulse", "60 BPM", "Minimal beat"]).map((tag) => (
+        {(tier.waveType === "calm" ? ["Nature sounds", "Wind ambience", "Bird tones"] : tier.waveType === "gentle" ? ["Ocean waves", "Light rain", "Wave swell LFO"] : tier.waveType === "rhythmic" ? ["Sine drone", "Harmonic fifth", "Breath pulse"] : tier.waveType === "deep" ? ["Brown noise", "Bass hum 55Hz", "Sub-bass"] : ["Heartbeat 58 BPM", "Lub-dub", "Sub pad"]).map((tag) => (
           <span key={tag} style={{ padding: "0.3rem 0.85rem", borderRadius: "99px", background: `${tier.color}18`, border: `1px solid ${tier.color}44`, fontSize: "0.78rem", color: tier.dimColor, fontWeight: 600 }}>{tag}</span>
         ))}
       </div>
     </div>
   );
 }
+
 
 // ─── Visual Guide ─────────────────────────────────────────────────────────────
 function VisualGuide({ tier }: { tier: Tier }) {
