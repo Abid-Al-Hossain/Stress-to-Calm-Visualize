@@ -20,6 +20,11 @@ interface Question {
   options: Option[];
 }
 
+interface AnswerState {
+  score: number;
+  optionIndex: number;
+}
+
 // ── Survey sections ───────────────────────────────────────────────────────────
 
 interface Section {
@@ -216,17 +221,15 @@ interface StressSurveyProps {
 
 export default function StressSurvey({ onComplete, onClose }: StressSurveyProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [answers, setAnswers] = useState<Record<number, AnswerState>>({});
 
   const question = QUESTIONS[currentIndex];
   const total = QUESTIONS.length;
   const progress = ((currentIndex + 1) / total) * 100;
   const isLast = currentIndex === total - 1;
   const selectedIndex = useMemo(() => {
-    const score = answers[question.id];
-    if (score === undefined) return null;
-    const idx = question.options.findIndex((opt) => opt.score === score);
-    return idx >= 0 ? idx : null;
+    const answer = answers[question.id];
+    return answer ? answer.optionIndex : null;
   }, [answers, question]);
 
   // Determine current section
@@ -235,15 +238,15 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
   const stepInSection = currentSection.questions.indexOf(question.id) + 1;
   const stepsInSection = currentSection.questions.length;
 
-  const handleSelect = (score: number, _optIdx: number) => {
-    setAnswers((prev) => ({ ...prev, [question.id]: score }));
+  const handleSelect = (score: number, optionIndex: number) => {
+    setAnswers((prev) => ({ ...prev, [question.id]: { score, optionIndex } }));
   };
 
   const handleNext = () => {
     if (selectedIndex === null) return;
     if (isLast) {
       const totalScore = QUESTIONS.filter((q) => q.scored).reduce(
-        (acc, q) => acc + (answers[q.id] ?? 0),
+        (acc, q) => acc + (answers[q.id]?.score ?? 0),
         0
       );
       onComplete(Math.min(totalScore, 100));
@@ -298,13 +301,13 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
           background: "rgba(255, 255, 255, 0.96)",
           border: "1px solid rgba(255, 255, 255, 0.55)",
           borderRadius: "24px",
-          padding: "1.75rem",
+          padding: "1.15rem 1.15rem 0.95rem",
           boxShadow: "0 20px 60px rgba(90, 155, 212, 0.18), 0 4px 16px rgba(30, 41, 59, 0.06)",
-          maxHeight: "90vh",
-          overflowY: "auto",
-          overscrollBehavior: "contain",
-          WebkitOverflowScrolling: "touch",
+          maxHeight: "86vh",
           position: "relative",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <div
@@ -315,8 +318,20 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
             background: `linear-gradient(180deg, ${currentSection.color}10 0%, rgba(255,255,255,0) 22%)`,
           }}
         />
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            overscrollBehavior: "contain",
+            WebkitOverflowScrolling: "touch",
+            paddingBottom: "0.85rem",
+          }}
+        >
         {/* Header */}
-        <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", marginBottom: "1rem", padding: "1rem 1.05rem", borderRadius: "20px", background: "rgba(255,255,255,0.72)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 10px 30px rgba(90,155,212,0.08)" }}>
+        <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.85rem", marginBottom: "0.75rem", padding: "0.8rem 0.9rem", borderRadius: "18px", background: "rgba(255,255,255,0.72)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 10px 30px rgba(90,155,212,0.08)" }}>
           <div style={{ flex: 1 }}>
             <p style={{ margin: "0 0 0.35rem", fontSize: "0.72rem", fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: currentSection.color }}>
               Stress Assessment
@@ -377,7 +392,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
         </div>
 
         {/* Section pills — shows all 4 sections as a journey map */}
-        <div style={{ display: "flex", gap: "0.45rem", marginBottom: "1rem", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
+        <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.8rem", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
           {SECTIONS.map((s, i) => {
             const isActive = i === sectionIndex;
             const isDone = i < sectionIndex;
@@ -388,7 +403,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
                   display: "flex",
                   alignItems: "center",
                   gap: "0.3rem",
-                  padding: "0.25rem 0.7rem",
+                  padding: "0.22rem 0.58rem",
                   borderRadius: "99px",
                   background: isActive ? `${s.color}20` : isDone ? "rgba(90,155,212,0.06)" : "rgba(180,215,235,0.1)",
                   border: `1px solid ${isActive ? s.color + "66" : isDone ? "rgba(90,155,212,0.2)" : "rgba(180,215,235,0.3)"}`,
@@ -397,7 +412,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
               >
                 <span style={{ fontSize: "0.75rem" }}>{isDone ? "✓" : s.emoji}</span>
                 <span style={{
-                  fontSize: "0.68rem",
+                  fontSize: "0.64rem",
                   fontWeight: isActive ? 700 : 500,
                   color: isActive ? s.color : isDone ? "#78909c" : "#b0bec5",
                   whiteSpace: "nowrap",
@@ -414,7 +429,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
           height: "4px",
           background: "rgba(90, 155, 212, 0.1)",
           borderRadius: "99px",
-          marginBottom: "1.75rem",
+          marginBottom: "1rem",
           overflow: "hidden",
         }}>
           <div
@@ -428,30 +443,30 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
           />
         </div>
 
-        <div style={{ position: "relative", zIndex: 1, padding: "1.2rem 1.15rem 1.1rem", borderRadius: "22px", background: "linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(248,251,255,0.96) 100%)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 12px 28px rgba(90,155,212,0.06)" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.38rem 0.8rem", borderRadius: "999px", background: `${currentSection.color}14`, color: currentSection.color, fontSize: "0.74rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.9rem" }}>
+        <div style={{ position: "relative", zIndex: 1, padding: "0.95rem 1rem 1rem", borderRadius: "20px", background: "linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(248,251,255,0.96) 100%)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 12px 28px rgba(90,155,212,0.06)" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", padding: "0.32rem 0.7rem", borderRadius: "999px", background: `${currentSection.color}14`, color: currentSection.color, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.7rem" }}>
               <span>{currentSection.emoji}</span>
               <span>{question.category}</span>
             </div>
             {/* English question */}
             <h2 style={{
               color: "#2c3e50",
-              fontSize: "1.32rem",
+              fontSize: "1.18rem",
               fontWeight: 800,
-              lineHeight: 1.45,
-              marginBottom: "0.7rem",
+              lineHeight: 1.35,
+              marginBottom: "0.55rem",
               fontFamily: "var(--font-heading)",
               maxWidth: "34rem",
             }}>
               {question.en}
             </h2>
             {/* Bengali */}
-            <p style={{ color: "#78909c", fontSize: "0.95rem", lineHeight: 1.75, marginBottom: "1.35rem", maxWidth: "34rem" }}>
+            <p style={{ color: "#78909c", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "0.95rem", maxWidth: "34rem" }}>
               {question.bn}
             </p>
 
             {/* Options */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem", paddingBottom: "0.35rem" }}>
               {question.options.map((opt, idx) => {
                 const isActive = selectedIndex === idx;
                 return (
@@ -462,8 +477,8 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
                     style={{
                       width: "100%",
                       textAlign: "left",
-                      padding: "1rem 1.1rem",
-                      borderRadius: "18px",
+                      padding: "0.8rem 0.9rem",
+                      borderRadius: "16px",
                       cursor: "pointer",
                       border: isActive
                         ? `1.5px solid ${currentSection.color}`
@@ -474,8 +489,8 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
                       transition: "background 0.16s, border-color 0.16s, box-shadow 0.16s, transform 0.16s",
                       display: "flex",
                       alignItems: "flex-start",
-                      gap: "0.95rem",
-                      boxShadow: isActive ? "0 10px 24px rgba(90,155,212,0.14)" : "0 4px 14px rgba(90,155,212,0.04)",
+                      gap: "0.8rem",
+                      boxShadow: isActive ? "0 8px 20px rgba(90,155,212,0.12)" : "0 4px 12px rgba(90,155,212,0.04)",
                       transform: isActive ? "translateY(-1px)" : "none",
                     }}
                   >
@@ -494,26 +509,27 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
                       <span style={{
                         color: isActive ? "#2c3e50" : "#37474f",
                         fontWeight: isActive ? 800 : 600,
-                        fontSize: "1rem",
+                        fontSize: "0.92rem",
                         display: "block",
                         transition: "color 0.2s",
-                        lineHeight: 1.45,
+                        lineHeight: 1.35,
                       }}>
                         {opt.label}
                       </span>
-                      <span style={{ color: "#90a4ae", fontSize: "0.84rem", lineHeight: 1.6, display: "block", marginTop: "0.18rem" }}>{opt.labelBn}</span>
+                      <span style={{ color: "#90a4ae", fontSize: "0.8rem", lineHeight: 1.45, display: "block", marginTop: "0.1rem" }}>{opt.labelBn}</span>
                     </span>
-                    <span style={{ color: isActive ? currentSection.color : "#b0bec5", fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", paddingTop: "0.28rem", textTransform: "uppercase" }}>
-                      {isActive ? "âœ“" : "â†’"}
+                    <span style={{ color: isActive ? currentSection.color : "#b0bec5", fontWeight: 700, fontSize: "0.74rem", letterSpacing: "0.08em", paddingTop: "0.18rem", textTransform: "uppercase" }}>
+                      {isActive ? "Selected" : "Choose"}
                     </span>
                   </button>
                 );
               })}
             </div>
         </div>
+        </div>
 
         {/* Navigation */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.9rem", marginTop: "1rem", paddingTop: "1rem", position: "sticky", bottom: 0, zIndex: 2, background: "linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.96) 22%, rgba(255,255,255,0.98) 100%)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem", marginTop: "0.1rem", marginLeft: "-1.15rem", marginRight: "-1.15rem", marginBottom: "-0.95rem", padding: "0.85rem 1.15rem 0.95rem", position: "relative", zIndex: 3, background: "#ffffff", borderTop: "1px solid rgba(90,155,212,0.12)", boxShadow: "0 -10px 24px rgba(90,155,212,0.08)" }}>
           <div style={{ fontSize: "0.82rem", color: "#78909c", fontWeight: 600 }}>
             {selectedIndex !== null ? "Choice saved" : "Choose one answer to continue"}
           </div>
@@ -526,7 +542,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
               border: "1.5px solid rgba(90,155,212,0.25)",
               borderRadius: "99px",
               color: currentIndex === 0 ? "#b0bec5" : "#546e7a",
-              padding: "0.72rem 1.25rem",
+              padding: "0.65rem 1.1rem",
               cursor: currentIndex === 0 ? "not-allowed" : "pointer",
               fontSize: "0.9rem",
               fontWeight: 600,
@@ -534,7 +550,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
               fontFamily: "var(--font-heading)",
             }}
           >
-            ← Back
+            Back
           </button>
 
           <button
@@ -548,7 +564,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
               border: "none",
               borderRadius: "99px",
               color: selectedIndex !== null ? "white" : "#b0bec5",
-              padding: "0.82rem 1.8rem",
+              padding: "0.74rem 1.55rem",
               cursor: selectedIndex !== null ? "pointer" : "not-allowed",
               fontSize: "0.95rem",
               fontWeight: 700,
@@ -557,7 +573,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
               fontFamily: "var(--font-heading)",
             }}
           >
-            {isLast ? "See My Results →" : "Next →"}
+            {isLast ? "See My Results" : "Next"}
           </button>
         </div>
       </motion.div>

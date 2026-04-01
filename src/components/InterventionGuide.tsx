@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type Method = "breathing" | "sound" | "visual" | "advice";
@@ -99,6 +99,13 @@ function getPhases(tier: Tier): PhaseStep[] {
   if (tier.breathing.hold > 0) steps.push({ id: "hold", label: "Hold", seconds: tier.breathing.hold, scale: 1.32 });
   steps.push({ id: "exhale", label: "Exhale", seconds: tier.breathing.exhale, scale: 1 });
   return steps;
+}
+
+function getBreathingTargets(tier: Tier) {
+  const cycleSeconds = tier.breathing.inhale + tier.breathing.hold + tier.breathing.exhale;
+  const startCycles = Math.ceil(180 / cycleSeconds);
+  const steadyCycles = Math.ceil(300 / cycleSeconds);
+  return { cycleSeconds, startCycles, steadyCycles };
 }
 
 function usePhases(phases: PhaseStep[], autoStart = false) {
@@ -325,6 +332,7 @@ function createAudio(mode: SoundMode): { stop: () => void } | null {
 
 function BreathingGuide({ tier }: { tier: Tier }) {
   const phases = useMemo(() => getPhases(tier), [tier]);
+  const targets = useMemo(() => getBreathingTargets(tier), [tier]);
   const { running, setRunning, phase, remaining, cycles, reset } = usePhases(phases);
 
   return (
@@ -361,10 +369,23 @@ function BreathingGuide({ tier }: { tier: Tier }) {
         </button>
       </div>
 
-      <div style={{ fontSize: "0.88rem", color: "#78909c" }}>Cycle {cycles + 1}</div>
+      <div style={{ display: "grid", gap: "0.3rem", justifyItems: "center", textAlign: "center" }}>
+        <div style={{ fontSize: "0.88rem", color: "#78909c" }}>Cycle {cycles + 1}</div>
+        <div style={{ fontSize: "0.84rem", color: "#546e7a", lineHeight: 1.6 }}>
+          Suggested goal: {targets.startCycles} cycles to start
+          <span style={{ color: "#90a4ae" }}> ({Math.ceil((targets.startCycles * targets.cycleSeconds) / 60)} min)</span>
+        </div>
+        <div style={{ fontSize: "0.8rem", color: "#78909c", lineHeight: 1.55 }}>
+          Longer practice: about {targets.steadyCycles} cycles
+          <span style={{ color: "#90a4ae" }}> ({Math.ceil((targets.steadyCycles * targets.cycleSeconds) / 60)} min)</span>
+        </div>
+      </div>
 
       <div style={{ width: "100%", maxWidth: "430px", background: "rgba(255,255,255,0.58)", borderRadius: "16px", padding: "1rem 1.15rem", border: "1px solid rgba(90,155,212,0.15)" }}>
-        <p style={{ margin: 0, color: "#37474f", fontSize: "0.92rem", lineHeight: 1.7 }}>{tier.breathing.summary}</p>
+        <p style={{ margin: "0 0 0.45rem", color: "#37474f", fontSize: "0.92rem", lineHeight: 1.7 }}>{tier.breathing.summary}</p>
+        <p style={{ margin: 0, color: "#607d8b", fontSize: "0.84rem", lineHeight: 1.65 }}>
+          This target is based on a short 3-minute start and a steadier 5-minute practice using this exact breathing rhythm.
+        </p>
       </div>
 
       <div style={{ width: "100%", maxWidth: "430px", background: `${tier.color}10`, borderLeft: `3px solid ${tier.color}`, borderRadius: "0 12px 12px 0", padding: "0.9rem 1rem" }}>
@@ -415,10 +436,17 @@ function SoundGuide({ tier }: { tier: Tier }) {
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", minHeight: "40px" }}>
           {bars.map((value, index) => (
-            <motion.div key={index}
-              animate={active ? { scaleY: [value, value * 1.7, value * 0.7, value * 1.25, value], opacity: [0.5, 1, 0.65, 0.9, 0.6] } : { scaleY: value * 0.6, opacity: 0.28 }}
-              transition={active ? { duration: 1.1 + (index % 4) * 0.15, repeat: Infinity, ease: "easeInOut", delay: index * 0.03 } : { duration: 0.3 }}
-              style={{ width: "8px", height: "42px", borderRadius: "999px", originY: "50%", background: `linear-gradient(to top, ${tier.dimColor}, ${tier.color})` }} />
+            <div
+              key={index}
+              style={{
+                width: "8px",
+                height: `${42 * (active ? Math.min(value * 1.35, 1) : value * 0.6)}px`,
+                borderRadius: "999px",
+                opacity: active ? 0.9 : 0.28,
+                transition: "height 0.18s ease-out, opacity 0.18s ease-out",
+                background: `linear-gradient(to top, ${tier.dimColor}, ${tier.color})`,
+              }}
+            />
           ))}
         </div>
 
@@ -464,11 +492,14 @@ function VisualGuide({ tier }: { tier: Tier }) {
         {tier.visual.mode === "sky" && (
           <>
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "56px", background: "linear-gradient(180deg, rgba(167,243,208,0.2) 0%, #bbf7d0 100%)" }} />
-            <motion.div animate={{ x: [-10, 18, -10] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-              style={{ position: "absolute", top: "28px", right: "38px", width: "52px", height: "52px", borderRadius: "50%", background: "rgba(255,255,255,0.55)", boxShadow: "0 0 38px rgba(255,255,255,0.55)" }} />
+            <div
+              style={{ position: "absolute", top: "28px", right: "38px", width: "52px", height: "52px", borderRadius: "50%", background: "rgba(255,255,255,0.55)", boxShadow: "0 0 38px rgba(255,255,255,0.55)" }}
+            />
             {CLOUDS.map((cloud) => (
-              <motion.div key={cloud.top} initial={{ x: cloud.left }} animate={{ x: [cloud.left, 320] }} transition={{ duration: cloud.duration, repeat: Infinity, repeatType: "loop", ease: "linear", delay: cloud.delay }}
-                style={{ position: "absolute", top: `${cloud.top}px`, left: 0, width: `${cloud.width}px`, height: "28px", borderRadius: "999px", background: "rgba(255,255,255,0.78)", boxShadow: "0 8px 24px rgba(255,255,255,0.35)" }} />
+              <div
+                key={cloud.top}
+                style={{ position: "absolute", top: `${cloud.top}px`, left: `${Math.max(12, cloud.left + 36)}px`, width: `${cloud.width}px`, height: "28px", borderRadius: "999px", background: "rgba(255,255,255,0.78)", boxShadow: "0 8px 24px rgba(255,255,255,0.22)" }}
+              />
             ))}
           </>
         )}
@@ -476,12 +507,16 @@ function VisualGuide({ tier }: { tier: Tier }) {
         {tier.visual.mode === "waves" && (
           <>
             {WAVE_BANDS.map((band) => (
-              <motion.div key={band.top} animate={{ x: [-18, 14, -18] }} transition={{ duration: band.duration, repeat: Infinity, ease: "easeInOut", delay: band.delay }}
-                style={{ position: "absolute", top: `${band.top}px`, left: "-5%", width: "110%", height: `${band.height}px`, borderRadius: "50% 50% 0 0", background: `linear-gradient(180deg, rgba(56,189,248,${band.opacity}) 0%, rgba(74,222,128,0.06) 100%)` }} />
+              <div
+                key={band.top}
+                style={{ position: "absolute", top: `${band.top}px`, left: "-5%", width: "110%", height: `${band.height}px`, borderRadius: "50% 50% 0 0", background: `linear-gradient(180deg, rgba(56,189,248,${band.opacity}) 0%, rgba(74,222,128,0.06) 100%)` }}
+              />
             ))}
             {PARTICLES.map((particle) => (
-              <motion.div key={`${particle.x}-${particle.y}`} animate={{ y: [particle.y, particle.y - 12, particle.y], opacity: [0.35, 0.8, 0.35] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: particle.delay }}
-                style={{ position: "absolute", left: `${particle.x}px`, top: `${particle.y}px`, width: `${particle.size}px`, height: `${particle.size}px`, borderRadius: "50%", background: particle.x % 2 === 0 ? "#67e8f9" : "#4ade80", boxShadow: "0 0 18px rgba(103,232,249,0.45)" }} />
+              <div
+                key={`${particle.x}-${particle.y}`}
+                style={{ position: "absolute", left: `${particle.x}px`, top: `${particle.y}px`, width: `${particle.size}px`, height: `${particle.size}px`, borderRadius: "50%", opacity: 0.55, background: particle.x % 2 === 0 ? "#67e8f9" : "#4ade80", boxShadow: "0 0 10px rgba(103,232,249,0.28)" }}
+              />
             ))}
           </>
         )}
@@ -518,12 +553,9 @@ function AdviceGuide({ tier }: { tier: Tier }) {
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", maxWidth: "440px", margin: "0 auto" }}>
       <div style={{ background: "rgba(255,255,255,0.6)", borderRadius: "18px", border: `1px solid ${tier.color}33`, padding: "1.15rem 1.2rem" }}>
         <p style={{ margin: "0 0 0.45rem", fontSize: "0.76rem", textTransform: "uppercase", letterSpacing: "0.1em", color: tier.dimColor }}>{tier.advice.title}</p>
-        <AnimatePresence mode="wait">
-          <motion.p key={`${tier.label}-${index}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-            style={{ margin: 0, color: "#2c3e50", fontSize: "1.15rem", lineHeight: 1.6, fontWeight: 700 }}>
-            {tier.advice.lines[index]}
-          </motion.p>
-        </AnimatePresence>
+        <p style={{ margin: 0, color: "#2c3e50", fontSize: "1.15rem", lineHeight: 1.6, fontWeight: 700 }}>
+          {tier.advice.lines[index]}
+        </p>
       </div>
 
       <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem" }}>
@@ -566,12 +598,24 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
   const tier = getTier(score);
   const [selected, setSelected] = useState<Method | null>(null);
 
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    const previousOverscroll = document.body.style.overscrollBehavior;
+    document.body.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "none";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.overscrollBehavior = previousOverscroll;
+    };
+  }, []);
+
   return (
     <motion.div id="intervention-guide-modal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", background: "rgba(180,215,235,0.55)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+      style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", background: "rgba(180,215,235,0.62)" }}>
       <motion.div initial={{ scale: 0.94, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.94, opacity: 0, y: 20 }}
         transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-        style={{ width: "100%", maxWidth: "700px", background: "rgba(255,255,255,0.84)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", border: "1px solid rgba(255,255,255,0.6)", borderRadius: "24px", padding: "2rem", boxShadow: `0 0 48px ${tier.glow}, 0 20px 60px rgba(90,155,212,0.12)`, maxHeight: "92vh", overflowY: "auto" }}>
+        style={{ width: "100%", maxWidth: "700px", background: "rgba(255,255,255,0.94)", border: "1px solid rgba(255,255,255,0.6)", borderRadius: "24px", padding: "1.4rem 1.4rem 1.25rem", boxShadow: `0 0 32px ${tier.glow}, 0 20px 48px rgba(90,155,212,0.12)`, maxHeight: "88vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", WebkitOverflowScrolling: "touch", paddingRight: "0.15rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", marginBottom: "0.8rem" }}>
           <div>
             {selected && <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#78909c", fontSize: "0.9rem", fontWeight: 600, padding: 0, marginBottom: "0.45rem" }}>Back to methods</button>}
@@ -586,7 +630,7 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
         </div>
 
         <div style={{ height: "4px", background: "rgba(90,155,212,0.12)", borderRadius: "999px", overflow: "hidden", marginBottom: "1.2rem" }}>
-          <motion.div initial={{ width: 0 }} animate={{ width: `${score}%` }} transition={{ duration: 1, ease: "easeOut" }} style={{ height: "100%", background: `linear-gradient(90deg, #5a9bd4, ${tier.color})`, borderRadius: "999px" }} />
+          <div style={{ width: `${score}%`, height: "100%", background: `linear-gradient(90deg, #5a9bd4, ${tier.color})`, borderRadius: "999px", transition: "width 0.35s ease-out" }} />
         </div>
 
         {!selected && <div style={{ background: `${tier.color}10`, borderRadius: "16px", border: `1px solid ${tier.color}24`, padding: "1rem 1.1rem", marginBottom: "1.2rem" }}>
@@ -595,17 +639,16 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
           </p>
         </div>}
 
-        <AnimatePresence mode="wait">
-          {!selected ? (
-            <motion.div key="methods" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
+        {!selected ? (
+            <div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.9rem", marginBottom: "1.2rem" }}>
                 {METHODS.map((method) => (
-                  <motion.button key={method.id} id={`method-${method.id}-btn`} onClick={() => setSelected(method.id)} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
+                  <button key={method.id} id={`method-${method.id}-btn`} onClick={() => setSelected(method.id)}
                     style={{ background: "rgba(255,255,255,0.66)", border: `1px solid ${tier.color}33`, borderRadius: "18px", padding: "1.15rem", cursor: "pointer", textAlign: "left", display: "flex", flexDirection: "column", gap: "0.55rem" }}>
                     <div style={{ width: "38px", height: "38px", borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", background: `${tier.color}18`, color: tier.dimColor, fontWeight: 800 }}>{method.short}</div>
                     <div style={{ fontSize: "1rem", fontWeight: 700, color: "#2c3e50" }}>{method.label}</div>
                     <div style={{ fontSize: "0.88rem", color: "#607d8b", lineHeight: 1.6 }}>{method.desc}</div>
-                  </motion.button>
+                  </button>
                 ))}
               </div>
 
@@ -621,19 +664,19 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
 
               <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
                 <button id="intervention-retake-btn" onClick={onRetake} style={{ background: "rgba(255,255,255,0.5)", border: "1px solid rgba(90,155,212,0.24)", borderRadius: "999px", color: "#546e7a", padding: "0.7rem 1.5rem", cursor: "pointer", fontWeight: 600 }}>Retake Survey</button>
-                <motion.button id="intervention-done-btn" onClick={onClose} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
-                  style={{ background: `linear-gradient(135deg, ${tier.color}, ${tier.dimColor})`, border: "none", borderRadius: "999px", color: "#fff", padding: "0.7rem 1.6rem", cursor: "pointer", fontWeight: 700, boxShadow: `0 8px 24px ${tier.glow}` }}>Done</motion.button>
+                <button id="intervention-done-btn" onClick={onClose}
+                  style={{ background: `linear-gradient(135deg, ${tier.color}, ${tier.dimColor})`, border: "none", borderRadius: "999px", color: "#fff", padding: "0.7rem 1.6rem", cursor: "pointer", fontWeight: 700, boxShadow: `0 8px 24px ${tier.glow}` }}>Done</button>
               </div>
-            </motion.div>
+            </div>
           ) : (
-            <motion.div key={selected} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
+            <div>
               {selected === "breathing" && <BreathingGuide key={`breathing-${tier.label}`} tier={tier} />}
               {selected === "sound" && <SoundGuide key={`sound-${tier.label}`} tier={tier} />}
               {selected === "visual" && <VisualGuide key={`visual-${tier.label}`} tier={tier} />}
               {selected === "advice" && <AdviceGuide key={`advice-${tier.label}`} tier={tier} />}
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </motion.div>
     </motion.div>
   );
