@@ -436,20 +436,20 @@ function BreathingGuide({ tier }: { tier: Tier }) {
       <motion.div
         animate={{ scale: running ? phase.scale : 1 }}
         transition={{ duration: phase.seconds, ease: "easeInOut" }}
-        style={{ width: "150px", height: "150px", borderRadius: "50%", border: `2px solid ${tier.color}88`, background: `radial-gradient(circle, ${tier.color}28 0%, rgba(255,255,255,0.5) 100%)`, boxShadow: `0 0 42px ${tier.glow}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}
+        style={{ width: "150px", height: "150px", borderRadius: "50%", border: `2px solid ${CALM_ACCENT}88`, background: `radial-gradient(circle, rgba(99,179,237,0.18) 0%, rgba(255,255,255,0.7) 100%)`, boxShadow: "0 0 42px rgba(99,179,237,0.22)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}
       >
-        <span style={{ fontSize: "1.9rem", fontWeight: 800, color: tier.dimColor, fontFamily: "monospace", lineHeight: 1 }}>{remaining}</span>
+        <span style={{ fontSize: "1.9rem", fontWeight: 800, color: CALM_ACCENT_TEXT, fontFamily: "monospace", lineHeight: 1 }}>{remaining}</span>
         <span style={{ fontSize: "0.82rem", color: "#546e7a", marginTop: "0.3rem" }}>{running ? phase.label : "Ready"}</span>
       </motion.div>
 
-      <div style={{ fontSize: "1rem", fontWeight: 700, color: tier.dimColor }}>{tier.breathing.name}</div>
+      <div style={{ fontSize: "1rem", fontWeight: 700, color: CALM_ACCENT_TEXT }}>{tier.breathing.name}</div>
 
       <div style={{ display: "flex", gap: "0.65rem", justifyContent: "center", flexWrap: "wrap" }}>
         {phases.map((step) => {
           const active = step.id === phase.id && running;
           return (
-            <div key={step.id} style={{ padding: "0.55rem 0.9rem", borderRadius: "12px", minWidth: "78px", background: active ? `${tier.color}18` : "rgba(255,255,255,0.56)", border: `1px solid ${active ? tier.color : "rgba(90,155,212,0.18)"}`, textAlign: "center" }}>
-              <div style={{ fontSize: "1rem", fontWeight: 700, color: active ? tier.dimColor : "#455a64" }}>{step.seconds}s</div>
+            <div key={step.id} style={{ padding: "0.55rem 0.9rem", borderRadius: "12px", minWidth: "78px", background: active ? "rgba(227,242,253,0.82)" : "rgba(255,255,255,0.56)", border: `1px solid ${active ? CALM_ACCENT : "rgba(90,155,212,0.18)"}`, textAlign: "center" }}>
+              <div style={{ fontSize: "1rem", fontWeight: 700, color: active ? CALM_ACCENT_TEXT : "#455a64" }}>{step.seconds}s</div>
               <div style={{ fontSize: "0.72rem", color: "#78909c", textTransform: "uppercase", letterSpacing: "0.08em" }}>{step.label}</div>
             </div>
           );
@@ -457,7 +457,7 @@ function BreathingGuide({ tier }: { tier: Tier }) {
       </div>
 
       <div style={{ display: "flex", gap: "0.65rem", justifyContent: "center", flexWrap: "wrap" }}>
-        <button onClick={() => setRunning((value) => !value)} style={{ background: `linear-gradient(135deg, ${tier.color}, ${tier.dimColor})`, border: "none", borderRadius: "999px", color: "#fff", padding: "0.72rem 1.4rem", cursor: "pointer", fontWeight: 700, boxShadow: `0 8px 24px ${tier.glow}` }}>
+        <button onClick={() => setRunning((value) => !value)} style={{ background: `linear-gradient(135deg, ${CALM_ACCENT}, ${CALM_ACCENT_DEEP})`, border: "none", borderRadius: "999px", color: "#fff", padding: "0.72rem 1.4rem", cursor: "pointer", fontWeight: 700, boxShadow: "0 8px 24px rgba(99,179,237,0.24)" }}>
           {running ? "Pause breathing" : "Start breathing"}
         </button>
         <button onClick={reset} style={{ background: "rgba(255,255,255,0.66)", border: "1px solid rgba(90,155,212,0.22)", borderRadius: "999px", color: "#546e7a", padding: "0.72rem 1.2rem", cursor: "pointer", fontWeight: 600 }}>
@@ -484,7 +484,7 @@ function BreathingGuide({ tier }: { tier: Tier }) {
         </p>
       </div>
 
-      <div style={{ width: "100%", maxWidth: "430px", background: `${tier.color}10`, borderLeft: `3px solid ${tier.color}`, borderRadius: "0 12px 12px 0", padding: "0.9rem 1rem" }}>
+      <div style={{ width: "100%", maxWidth: "430px", background: "rgba(227,242,253,0.62)", borderLeft: `3px solid ${CALM_ACCENT}`, borderRadius: "0 12px 12px 0", padding: "0.9rem 1rem" }}>
         <p style={{ margin: 0, color: "#455a64", fontSize: "0.86rem", lineHeight: 1.7 }}>
           Breathe gently and stay within a comfortable range. If the rhythm feels too strong, return to a normal easy breath and restart when ready.
         </p>
@@ -521,13 +521,13 @@ function SoundGuide({ tier }: { tier: Tier }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
-      <div onClick={toggle} style={{ width: "100%", maxWidth: "440px", minHeight: "108px", borderRadius: "18px", padding: "1rem", cursor: "pointer", display: "flex", flexDirection: "column", gap: "0.85rem", justifyContent: "center", background: tier.visual.dark ? "rgba(15,23,42,0.86)" : "rgba(255,255,255,0.56)", border: `1px solid ${tier.color}33` }}>
+      <div onClick={toggle} style={{ width: "100%", maxWidth: "440px", minHeight: "108px", borderRadius: "18px", padding: "1rem", cursor: "pointer", display: "flex", flexDirection: "column", gap: "0.85rem", justifyContent: "center", background: "linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(240,249,255,0.95) 100%)", border: `1px solid ${CALM_BORDER}` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem" }}>
           <div>
-            <div style={{ fontSize: "0.76rem", textTransform: "uppercase", letterSpacing: "0.08em", color: tier.visual.dark ? "rgba(255,255,255,0.72)" : "#607d8b" }}>{tier.sound.name}</div>
-            <div style={{ fontSize: "0.9rem", fontWeight: 700, color: tier.visual.dark ? "#fff" : "#2c3e50" }}>{active ? "Audio is playing" : "Tap to play"}</div>
+            <div style={{ fontSize: "0.76rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "#607d8b" }}>{tier.sound.name}</div>
+            <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "#2c3e50" }}>{active ? "Audio is playing" : "Tap to play"}</div>
           </div>
-          <div style={{ color: tier.color, fontWeight: 700 }}>{active ? "Stop" : "Play"}</div>
+          <div style={{ color: CALM_ACCENT_TEXT, fontWeight: 700 }}>{active ? "Stop" : "Play"}</div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", minHeight: "40px" }}>
@@ -540,14 +540,14 @@ function SoundGuide({ tier }: { tier: Tier }) {
                 borderRadius: "999px",
                 opacity: active ? 0.9 : 0.28,
                 transition: "height 0.18s ease-out, opacity 0.18s ease-out",
-                background: `linear-gradient(to top, ${tier.dimColor}, ${tier.color})`,
+                background: `linear-gradient(to top, ${CALM_ACCENT_DEEP}, ${CALM_ACCENT})`,
               }}
             />
           ))}
         </div>
 
         {(tier.sound.mode === "guided" || tier.sound.mode === "heartbeat") && active && (
-          <div style={{ textAlign: "center", color: tier.visual.dark ? "#fef3c7" : tier.dimColor, fontWeight: 700, letterSpacing: "0.06em" }}>Cue: {phase.label}</div>
+          <div style={{ textAlign: "center", color: CALM_ACCENT_TEXT, fontWeight: 700, letterSpacing: "0.06em" }}>Cue: {phase.label}</div>
         )}
       </div>
 
@@ -556,7 +556,7 @@ function SoundGuide({ tier }: { tier: Tier }) {
         <p style={{ margin: "0 0 0.85rem", color: "#546e7a", fontSize: "0.9rem", lineHeight: 1.7 }}>Example: {tier.sound.example}</p>
         <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap" }}>
           {tier.sound.tags.map((tag) => (
-            <span key={tag} style={{ padding: "0.32rem 0.82rem", borderRadius: "999px", background: `${tier.color}16`, border: `1px solid ${tier.color}44`, color: tier.dimColor, fontWeight: 600, fontSize: "0.8rem" }}>{tag}</span>
+            <span key={tag} style={{ padding: "0.32rem 0.82rem", borderRadius: "999px", background: "rgba(227,242,253,0.82)", border: `1px solid ${CALM_BORDER}`, color: CALM_ACCENT_TEXT, fontWeight: 600, fontSize: "0.8rem" }}>{tag}</span>
           ))}
         </div>
       </div>
@@ -566,13 +566,13 @@ function SoundGuide({ tier }: { tier: Tier }) {
 function CircleFocus({ tier }: { tier: Tier }) {
   return (
     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "0.8rem" }}>
-      <div style={{ width: "132px", height: "132px", borderRadius: "50%", border: `2px solid ${tier.color}`, boxShadow: `0 0 34px ${tier.glow}`, display: "flex", alignItems: "center", justifyContent: "center", background: `radial-gradient(circle, ${tier.color}18 0%, rgba(255,255,255,0.9) 100%)` }}>
-        <div style={{ width: "72px", height: "72px", borderRadius: "50%", border: `2px solid ${tier.color}88`, display: "flex", alignItems: "center", justifyContent: "center", background: `radial-gradient(circle, ${tier.color}42 0%, rgba(255,255,255,0.22) 100%)` }}>
-          <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: tier.dimColor, boxShadow: `0 0 14px ${tier.glow}` }} />
+      <div style={{ width: "132px", height: "132px", borderRadius: "50%", border: `2px solid ${CALM_ACCENT}`, boxShadow: "0 0 34px rgba(99,179,237,0.18)", display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(99,179,237,0.14) 0%, rgba(255,255,255,0.9) 100%)" }}>
+        <div style={{ width: "72px", height: "72px", borderRadius: "50%", border: `2px solid ${CALM_ACCENT}88`, display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(99,179,237,0.32) 0%, rgba(255,255,255,0.22) 100%)" }}>
+          <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: CALM_ACCENT_TEXT, boxShadow: "0 0 14px rgba(99,179,237,0.24)" }} />
         </div>
       </div>
       <div style={{ textAlign: "center" }}>
-        <div style={{ color: tier.dimColor, fontWeight: 700 }}>Center / Ring / Edge</div>
+        <div style={{ color: CALM_ACCENT_TEXT, fontWeight: 700 }}>Center / Ring / Edge</div>
         <div style={{ color: "#546e7a", fontSize: "0.88rem" }}>Use your eyes to move from the center outward, then back to the room.</div>
       </div>
     </div>
@@ -589,8 +589,8 @@ function VisualGuide({ tier }: { tier: Tier }) {
         : tier.visual.mode === "pulse"
           ? "linear-gradient(180deg, #e5f0ff 0%, #edf7fb 58%, #dff5ee 100%)"
           : "linear-gradient(180deg, #edf4ff 0%, #f6fbff 56%, #e4f6f1 100%)";
-  const visualAccent = tier.visual.mode === "pulse" || tier.visual.mode === "single" ? CALM_ACCENT_DEEP : tier.color;
-  const visualGlow = tier.visual.mode === "pulse" || tier.visual.mode === "single" ? "rgba(118,199,183,0.34)" : tier.glow;
+  const visualAccent = tier.visual.mode === "pulse" || tier.visual.mode === "single" ? CALM_ACCENT_DEEP : CALM_ACCENT;
+  const visualGlow = tier.visual.mode === "pulse" || tier.visual.mode === "single" ? "rgba(118,199,183,0.34)" : "rgba(99,179,237,0.24)";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
@@ -679,12 +679,12 @@ function VisualGuide({ tier }: { tier: Tier }) {
 function AdviceGuide({ tier }: { tier: Tier }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", maxWidth: "440px", margin: "0 auto" }}>
-      <div style={{ background: "rgba(255,255,255,0.6)", borderRadius: "18px", border: `1px solid ${tier.color}33`, padding: "1.15rem 1.2rem" }}>
-        <p style={{ margin: "0 0 0.45rem", fontSize: "0.76rem", textTransform: "uppercase", letterSpacing: "0.1em", color: tier.dimColor }}>{tier.advice.title}</p>
+      <div style={{ background: CALM_PANEL, borderRadius: "18px", border: `1px solid ${CALM_BORDER}`, padding: "1.15rem 1.2rem" }}>
+        <p style={{ margin: "0 0 0.45rem", fontSize: "0.76rem", textTransform: "uppercase", letterSpacing: "0.1em", color: CALM_ACCENT_TEXT }}>{tier.advice.title}</p>
         <div style={{ display: "grid", gap: "0.55rem" }}>
           {tier.advice.lines.map((line, index) => (
-            <div key={line} style={{ padding: "0.8rem 0.95rem", borderRadius: "14px", background: `${tier.color}${index === 0 ? "16" : "0f"}`, border: `1px solid ${tier.color}22` }}>
-              <div style={{ color: tier.dimColor, fontSize: "0.74rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.2rem" }}>
+            <div key={line} style={{ padding: "0.8rem 0.95rem", borderRadius: "14px", background: index === 0 ? "rgba(227,242,253,0.78)" : "rgba(255,255,255,0.72)", border: `1px solid ${CALM_BORDER}` }}>
+              <div style={{ color: CALM_ACCENT_TEXT, fontSize: "0.74rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.2rem" }}>
                 Prompt {index + 1}
               </div>
               <div style={{ color: "#2c3e50", fontSize: "1rem", lineHeight: 1.55, fontWeight: 700 }}>
@@ -695,12 +695,12 @@ function AdviceGuide({ tier }: { tier: Tier }) {
         </div>
       </div>
 
-      <div style={{ background: `${tier.color}10`, borderLeft: `3px solid ${tier.color}`, borderRadius: "0 12px 12px 0", padding: "0.9rem 1rem" }}>
+      <div style={{ background: "rgba(227,242,253,0.62)", borderLeft: `3px solid ${CALM_ACCENT}`, borderRadius: "0 12px 12px 0", padding: "0.9rem 1rem" }}>
         <p style={{ margin: 0, color: "#455a64", fontSize: "0.88rem", lineHeight: 1.7 }}>{tier.advice.focus}</p>
       </div>
 
-      <div style={{ background: "rgba(255,255,255,0.58)", borderRadius: "18px", border: `1px solid ${tier.color}22`, padding: "1rem 1.05rem" }}>
-        <p style={{ margin: "0 0 0.35rem", color: tier.dimColor, fontSize: "0.76rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+      <div style={{ background: CALM_PANEL, borderRadius: "18px", border: `1px solid ${CALM_BORDER}`, padding: "1rem 1.05rem" }}>
+        <p style={{ margin: "0 0 0.35rem", color: CALM_ACCENT_TEXT, fontSize: "0.76rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>
           {tier.advice.groundingName}
         </p>
         <p style={{ margin: "0 0 0.75rem", color: "#546e7a", fontSize: "0.9rem", lineHeight: 1.7 }}>
@@ -708,8 +708,8 @@ function AdviceGuide({ tier }: { tier: Tier }) {
         </p>
         <div style={{ display: "grid", gap: "0.6rem" }}>
           {tier.advice.groundingSteps.map((step, index) => (
-            <div key={step} style={{ padding: "0.85rem 0.95rem", borderRadius: "14px", background: "rgba(255,255,255,0.72)", border: "1px solid rgba(90,155,212,0.14)" }}>
-              <div style={{ color: tier.dimColor, fontWeight: 700, marginBottom: "0.2rem" }}>Grounding step {index + 1}</div>
+            <div key={step} style={{ padding: "0.85rem 0.95rem", borderRadius: "14px", background: "rgba(255,255,255,0.78)", border: `1px solid ${CALM_BORDER}` }}>
+              <div style={{ color: CALM_ACCENT_TEXT, fontWeight: 700, marginBottom: "0.2rem" }}>Grounding step {index + 1}</div>
               <div style={{ color: "#37474f", lineHeight: 1.6 }}>{step}</div>
             </div>
           ))}

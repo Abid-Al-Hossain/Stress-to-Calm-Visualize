@@ -1,6 +1,6 @@
 # Stress-to-Calm Visualizer
 
-Stress-to-Calm Visualizer is a Next.js web application that symbolically visualizes how stress can affect a child's mental state and then guides the user toward calmer states through breathing, visual, sound, and grounding interventions.
+Stress-to-Calm Visualizer is a Next.js web application that symbolically visualizes how stress can affect a child's mental state and then guides the user toward calmer states through breathing, sound, guided imagery, and grounding-based support.
 
 The project is built as an educational and demonstrative front-end experience. It is not a diagnostic tool, not a clinical system, and not a production-ready mental-health platform.
 
@@ -20,7 +20,7 @@ The core product idea is:
 2. calculate a stress score from weighted responses
 3. map that score to a symbolic stress tier
 4. update a visualizer to reflect that state
-5. offer tier-specific coping guidance
+5. offer tier-specific calming guidance
 
 ## Current Product Scope
 
@@ -49,7 +49,7 @@ This repository does not currently contain:
 1. The user opens the home page.
 2. The landing page explains the educational purpose of the project.
 3. The user can optionally register or log in.
-4. The user opens the survey by clicking `Answer Questions` or `Start Assessment`.
+4. The user opens the survey by clicking `Answer Questions`.
 5. The app presents 10 questions in a modal.
 6. The app scores the first 5 questions and ignores the last 5 for numeric scoring.
 7. The final score is capped at `100`.
@@ -92,6 +92,12 @@ The survey is a modal experience with bilingual question content. It is organize
 The survey contains 10 questions total.
 
 Only the first 5 questions are numerically scored. Questions 6 to 10 capture preferences and reflective context, but do not change the final score.
+
+Recent UX changes:
+
+- reduced animation overhead for smoother scrolling and selection
+- explicit fix for non-scored question selection persistence
+- footer and scroll behavior adjusted so content no longer bleeds under controls
 
 Primary implementation:
 
@@ -136,6 +142,13 @@ Guided breathing patterns vary by stress level, including:
 - `4-7`
 - `4-8`
 
+The breathing method also shows:
+
+- the current phase
+- the live cycle count
+- a suggested short practice target
+- a longer practice target
+
 #### Sound
 
 The sound section uses lightweight synthesized audio through the browser Web Audio API and also presents recommendations for sound environments such as:
@@ -148,11 +161,28 @@ The sound section uses lightweight synthesized audio through the browser Web Aud
 
 #### Visual
 
-The visual method uses animated transitions and calming palette suggestions to symbolically move from stress to calm.
+The visual method now functions as a guided-imagery / guided-visualization path. It presents:
+
+- tier-matched calming scenes
+- a short spoken-style imagery script
+- supporting practice notes
+
+Examples include:
+
+- blue sky and clouds
+- shoreline / flowing water imagery
+- a calm internal light or circle
+- a minimal dim-light safe image for higher stress
 
 #### Advice
 
-The advice method presents step-by-step grounding or coping exercises tailored to the selected tier.
+The advice method keeps short tier-specific reassurance prompts, but now also includes structured sensory grounding guidance:
+
+- `5-4-3-2-1` style grounding for lower to moderate stress
+- shorter `3-3-3` style grounding for high stress
+- simplified orientation grounding for severe stress
+
+The intervention modal was also restyled to better match the landing page’s calmer blue/teal visual language.
 
 Primary implementation:
 
@@ -221,40 +251,40 @@ The file `score.txt` exists in the repository as local reference material, but i
 
 ```text
 stress-visualizer-web/
-├─ public/
-├─ src/
-│  ├─ app/
-│  │  ├─ login/
-│  │  ├─ register/
-│  │  ├─ favicon.ico
-│  │  ├─ globals.css
-│  │  ├─ layout.tsx
-│  │  ├─ page.module.css
-│  │  ├─ page.tsx
-│  │  └─ template.tsx
-│  ├─ components/
-│  │  ├─ BreathingButton.tsx
-│  │  ├─ CalmBackground.tsx
-│  │  ├─ CalmRipple.tsx
-│  │  ├─ InterventionGuide.tsx
-│  │  ├─ Navbar.tsx
-│  │  ├─ StressSurvey.tsx
-│  │  ├─ StressToCalmPreview.tsx
-│  │  └─ TiltCard.tsx
-│  ├─ hooks/
-│  │  └─ useCalmSound.ts
-│  ├─ services/
-│  │  └─ auth.ts
-│  └─ types/
-│     └─ flubber.d.ts
-├─ extended_stress_survey.txt
-├─ read_pdf.js
-├─ score.txt
-├─ stress_intervention_guide.txt
-├─ stress_scoring_system.pdf
-├─ next.config.ts
-├─ package.json
-└─ tsconfig.json
+|- public/
+|- src/
+|  |- app/
+|  |  |- login/
+|  |  |- register/
+|  |  |- favicon.ico
+|  |  |- globals.css
+|  |  |- layout.tsx
+|  |  |- page.module.css
+|  |  |- page.tsx
+|  |  `- template.tsx
+|  |- components/
+|  |  |- BreathingButton.tsx
+|  |  |- CalmBackground.tsx
+|  |  |- CalmRipple.tsx
+|  |  |- InterventionGuide.tsx
+|  |  |- Navbar.tsx
+|  |  |- StressSurvey.tsx
+|  |  |- StressToCalmPreview.tsx
+|  |  `- TiltCard.tsx
+|  |- hooks/
+|  |  `- useCalmSound.ts
+|  |- services/
+|  |  `- auth.ts
+|  `- types/
+|     `- flubber.d.ts
+|- extended_stress_survey.txt
+|- read_pdf.js
+|- score.txt
+|- stress_intervention_guide.txt
+|- stress_scoring_system.pdf
+|- next.config.ts
+|- package.json
+`- tsconfig.json
 ```
 
 ## Key Files
@@ -264,7 +294,7 @@ stress-visualizer-web/
 - `src/app/page.tsx`: main page and feature orchestration
 - `src/components/StressSurvey.tsx`: survey content and score calculation
 - `src/components/StressToCalmPreview.tsx`: animated visualizer
-- `src/components/InterventionGuide.tsx`: tier-based support modal
+- `src/components/InterventionGuide.tsx`: tier-based solution modal with breathing, synthesized sound, guided imagery, and grounding guidance
 - `src/services/auth.ts`: client-only demo authentication
 - `src/components/Navbar.tsx`: auth state display and animation pause toggle
 
@@ -300,7 +330,8 @@ stress-visualizer-web/
 ### Miscellaneous
 
 - `pdf-parse` for local document extraction work
-- `use-sound` installed, but not meaningfully active in the current UI
+- browser Web Audio API for synthesized intervention audio
+- `use-sound` installed, but not used by the main intervention flow
 
 ## Styling Approach
 
@@ -314,6 +345,7 @@ The visual direction includes:
 - rounded surfaces
 - slow motion transitions
 - calming interaction affordances
+- a calmer blue/teal solution modal palette aligned with the landing page
 
 The app also includes a global `animation-paused` mode controlled from the navbar, which pauses CSS animations for users who want less motion.
 
@@ -382,9 +414,9 @@ The lint issues are mostly related to:
 - Authentication is front-end only.
 - Credentials are stored in browser `localStorage`.
 - No backend or persistence layer exists.
-- No real audio playback is implemented in the intervention flow.
+- Intervention audio is synthesized in the browser rather than using authored audio assets.
 - Some files in the repository are research or scratch artifacts rather than production code.
-- The README was previously a default template, which means project documentation lagged behind implementation.
+- The README previously lagged behind implementation and needs to stay synchronized with UI changes.
 
 ### Consistency limitations
 
