@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 
 // ── Scoring data from stress_scoring_system.pdf ──────────────────────────────
 
@@ -217,13 +217,17 @@ interface StressSurveyProps {
 export default function StressSurvey({ onComplete, onClose }: StressSurveyProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [selected, setSelected] = useState<number | null>(null);
-  const [direction, setDirection] = useState(1);
 
   const question = QUESTIONS[currentIndex];
   const total = QUESTIONS.length;
   const progress = ((currentIndex + 1) / total) * 100;
   const isLast = currentIndex === total - 1;
+  const selectedIndex = useMemo(() => {
+    const score = answers[question.id];
+    if (score === undefined) return null;
+    const idx = question.options.findIndex((opt) => opt.score === score);
+    return idx >= 0 ? idx : null;
+  }, [answers, question]);
 
   // Determine current section
   const currentSection = SECTIONS.find((s) => s.questions.includes(question.id)) ?? SECTIONS[0];
@@ -231,13 +235,12 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
   const stepInSection = currentSection.questions.indexOf(question.id) + 1;
   const stepsInSection = currentSection.questions.length;
 
-  const handleSelect = (score: number, optIdx: number) => {
-    setSelected(optIdx);
+  const handleSelect = (score: number, _optIdx: number) => {
     setAnswers((prev) => ({ ...prev, [question.id]: score }));
   };
 
   const handleNext = () => {
-    if (selected === null) return;
+    if (selectedIndex === null) return;
     if (isLast) {
       const totalScore = QUESTIONS.filter((q) => q.scored).reduce(
         (acc, q) => acc + (answers[q.id] ?? 0),
@@ -245,31 +248,25 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
       );
       onComplete(Math.min(totalScore, 100));
     } else {
-      setDirection(1);
       setCurrentIndex((i) => i + 1);
-      setSelected(null);
     }
   };
 
   const handlePrev = () => {
     if (currentIndex === 0) return;
-    setDirection(-1);
     setCurrentIndex((i) => i - 1);
-    const prevQuestion = QUESTIONS[currentIndex - 1];
-    const prevScore = answers[prevQuestion.id];
-    if (prevScore !== undefined) {
-      const idx = prevQuestion.options.findIndex((o) => o.score === prevScore);
-      setSelected(idx >= 0 ? idx : null);
-    } else {
-      setSelected(null);
-    }
   };
 
-  const slideVariants = {
-    enter: (dir: number) => ({ x: dir > 0 ? 50 : -50, opacity: 0 }),
-    center: { x: 0, opacity: 1 },
-    exit: (dir: number) => ({ x: dir > 0 ? -50 : 50, opacity: 0 }),
-  };
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    const previousOverscroll = document.body.style.overscrollBehavior;
+    document.body.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "none";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.overscrollBehavior = previousOverscroll;
+    };
+  }, []);
 
   return (
     // Backdrop — soft blur matching site background
@@ -286,9 +283,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
         alignItems: "center",
         justifyContent: "center",
         padding: "1rem",
-        background: "rgba(180, 215, 235, 0.55)",
-        backdropFilter: "blur(18px)",
-        WebkitBackdropFilter: "blur(18px)",
+        background: "rgba(180, 215, 235, 0.68)",
       }}
     >
       <motion.div
@@ -300,20 +295,32 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
           width: "100%",
           maxWidth: "620px",
           // Glass card — same as .card / .auth-card on the site
-          background: "rgba(255, 255, 255, 0.78)",
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
+          background: "rgba(255, 255, 255, 0.96)",
           border: "1px solid rgba(255, 255, 255, 0.55)",
           borderRadius: "24px",
-          padding: "2.5rem",
+          padding: "1.75rem",
           boxShadow: "0 20px 60px rgba(90, 155, 212, 0.18), 0 4px 16px rgba(30, 41, 59, 0.06)",
           maxHeight: "90vh",
           overflowY: "auto",
+          overscrollBehavior: "contain",
+          WebkitOverflowScrolling: "touch",
+          position: "relative",
         }}
       >
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            background: `linear-gradient(180deg, ${currentSection.color}10 0%, rgba(255,255,255,0) 22%)`,
+          }}
+        />
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+        <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", marginBottom: "1rem", padding: "1rem 1.05rem", borderRadius: "20px", background: "rgba(255,255,255,0.72)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 10px 30px rgba(90,155,212,0.08)" }}>
           <div style={{ flex: 1 }}>
+            <p style={{ margin: "0 0 0.35rem", fontSize: "0.72rem", fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: currentSection.color }}>
+              Stress Assessment
+            </p>
             {/* Section badge */}
             <motion.div
               key={currentSection.id}
@@ -338,7 +345,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
                 · {stepInSection}/{stepsInSection}
               </span>
             </motion.div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
               <p style={{ fontSize: "0.82rem", color: "#78909c" }}>
                 Question {currentIndex + 1} of {total}
               </p>
@@ -353,15 +360,16 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
             id="survey-close-btn"
             onClick={onClose}
             style={{
-              background: "none",
-              border: "none",
+              background: "rgba(255,255,255,0.72)",
+              border: "1px solid rgba(90,155,212,0.16)",
               cursor: "pointer",
-              color: "#90a4ae",
-              fontSize: "1.3rem",
+              color: "#607d8b",
+              fontSize: "1.1rem",
               lineHeight: 1,
-              padding: "0.25rem",
+              width: "36px",
+              height: "36px",
               borderRadius: "50%",
-              transition: "color 0.2s",
+              transition: "background 0.2s, color 0.2s",
             }}
           >
             ✕
@@ -369,7 +377,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
         </div>
 
         {/* Section pills — shows all 4 sections as a journey map */}
-        <div style={{ display: "flex", gap: "0.4rem", marginBottom: "1rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "0.45rem", marginBottom: "1rem", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
           {SECTIONS.map((s, i) => {
             const isActive = i === sectionIndex;
             const isDone = i < sectionIndex;
@@ -409,105 +417,106 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
           marginBottom: "1.75rem",
           overflow: "hidden",
         }}>
-          <motion.div
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.45 }}
+          <div
             style={{
               height: "100%",
+              width: `${progress}%`,
               background: `linear-gradient(90deg, #5a9bd4, ${currentSection.color})`,
               borderRadius: "99px",
+              transition: "width 0.2s ease-out",
             }}
           />
         </div>
 
-        {/* Slide */}
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={currentIndex}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.28, ease: "easeInOut" }}
-          >
+        <div style={{ position: "relative", zIndex: 1, padding: "1.2rem 1.15rem 1.1rem", borderRadius: "22px", background: "linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(248,251,255,0.96) 100%)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 12px 28px rgba(90,155,212,0.06)" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.38rem 0.8rem", borderRadius: "999px", background: `${currentSection.color}14`, color: currentSection.color, fontSize: "0.74rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.9rem" }}>
+              <span>{currentSection.emoji}</span>
+              <span>{question.category}</span>
+            </div>
             {/* English question */}
             <h2 style={{
               color: "#2c3e50",
-              fontSize: "1.15rem",
-              fontWeight: 700,
-              lineHeight: 1.55,
-              marginBottom: "0.6rem",
+              fontSize: "1.32rem",
+              fontWeight: 800,
+              lineHeight: 1.45,
+              marginBottom: "0.7rem",
               fontFamily: "var(--font-heading)",
+              maxWidth: "34rem",
             }}>
               {question.en}
             </h2>
             {/* Bengali */}
-            <p style={{ color: "#78909c", fontSize: "0.9rem", lineHeight: 1.7, marginBottom: "1.6rem" }}>
+            <p style={{ color: "#78909c", fontSize: "0.95rem", lineHeight: 1.75, marginBottom: "1.35rem", maxWidth: "34rem" }}>
               {question.bn}
             </p>
 
             {/* Options */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               {question.options.map((opt, idx) => {
-                const isActive = selected === idx;
+                const isActive = selectedIndex === idx;
                 return (
-                  <motion.button
+                  <button
                     key={idx}
                     id={`survey-q${question.id}-opt${idx}`}
                     onClick={() => handleSelect(opt.score, idx)}
-                    whileHover={{ x: 3, boxShadow: "0 4px 16px rgba(90,155,212,0.12)" }}
-                    whileTap={{ scale: 0.98 }}
                     style={{
                       width: "100%",
                       textAlign: "left",
-                      padding: "0.9rem 1.15rem",
-                      borderRadius: "14px",
+                      padding: "1rem 1.1rem",
+                      borderRadius: "18px",
                       cursor: "pointer",
                       border: isActive
-                        ? "1.5px solid #5a9bd4"
+                        ? `1.5px solid ${currentSection.color}`
                         : "1.5px solid rgba(90,155,212,0.15)",
                       background: isActive
-                        ? "rgba(90, 155, 212, 0.1)"
-                        : "rgba(255, 255, 255, 0.55)",
-                      transition: "background 0.2s, border-color 0.2s",
+                        ? `linear-gradient(135deg, ${currentSection.color}14, rgba(255,255,255,0.96))`
+                        : "rgba(255, 255, 255, 0.72)",
+                      transition: "background 0.16s, border-color 0.16s, box-shadow 0.16s, transform 0.16s",
                       display: "flex",
-                      alignItems: "center",
-                      gap: "0.85rem",
-                      backdropFilter: "blur(4px)",
+                      alignItems: "flex-start",
+                      gap: "0.95rem",
+                      boxShadow: isActive ? "0 10px 24px rgba(90,155,212,0.14)" : "0 4px 14px rgba(90,155,212,0.04)",
+                      transform: isActive ? "translateY(-1px)" : "none",
                     }}
                   >
                     {/* Radio dot */}
                     <div style={{
-                      width: "18px",
-                      height: "18px",
+                      width: "20px",
+                      height: "20px",
                       borderRadius: "50%",
-                      border: isActive ? "5px solid #5a9bd4" : "2px solid #b0bec5",
+                      border: isActive ? `6px solid ${currentSection.color}` : "2px solid #b0bec5",
                       flexShrink: 0,
                       transition: "border 0.2s",
                       background: "white",
+                      marginTop: "0.18rem",
                     }} />
-                    <span>
+                    <span style={{ flex: 1 }}>
                       <span style={{
                         color: isActive ? "#2c3e50" : "#37474f",
-                        fontWeight: isActive ? 700 : 500,
-                        fontSize: "0.95rem",
+                        fontWeight: isActive ? 800 : 600,
+                        fontSize: "1rem",
                         display: "block",
                         transition: "color 0.2s",
+                        lineHeight: 1.45,
                       }}>
                         {opt.label}
                       </span>
-                      <span style={{ color: "#90a4ae", fontSize: "0.8rem" }}>{opt.labelBn}</span>
+                      <span style={{ color: "#90a4ae", fontSize: "0.84rem", lineHeight: 1.6, display: "block", marginTop: "0.18rem" }}>{opt.labelBn}</span>
                     </span>
-                  </motion.button>
+                    <span style={{ color: isActive ? currentSection.color : "#b0bec5", fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", paddingTop: "0.28rem", textTransform: "uppercase" }}>
+                      {isActive ? "âœ“" : "â†’"}
+                    </span>
+                  </button>
                 );
               })}
             </div>
-          </motion.div>
-        </AnimatePresence>
+        </div>
 
         {/* Navigation */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "2rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.9rem", marginTop: "1rem", paddingTop: "1rem", position: "sticky", bottom: 0, zIndex: 2, background: "linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.96) 22%, rgba(255,255,255,0.98) 100%)" }}>
+          <div style={{ fontSize: "0.82rem", color: "#78909c", fontWeight: 600 }}>
+            {selectedIndex !== null ? "Choice saved" : "Choose one answer to continue"}
+          </div>
           <button
             id="survey-prev-btn"
             onClick={handlePrev}
@@ -517,7 +526,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
               border: "1.5px solid rgba(90,155,212,0.25)",
               borderRadius: "99px",
               color: currentIndex === 0 ? "#b0bec5" : "#546e7a",
-              padding: "0.65rem 1.5rem",
+              padding: "0.72rem 1.25rem",
               cursor: currentIndex === 0 ? "not-allowed" : "pointer",
               fontSize: "0.9rem",
               fontWeight: 600,
@@ -528,30 +537,28 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
             ← Back
           </button>
 
-          <motion.button
+          <button
             id="survey-next-btn"
             onClick={handleNext}
-            disabled={selected === null}
-            whileHover={selected !== null ? { scale: 1.04, y: -1 } : {}}
-            whileTap={selected !== null ? { scale: 0.97 } : {}}
+            disabled={selectedIndex === null}
             style={{
-              background: selected !== null
+              background: selectedIndex !== null
                 ? "linear-gradient(135deg, #5a9bd4, #76c7b7)"
                 : "rgba(90,155,212,0.1)",
               border: "none",
               borderRadius: "99px",
-              color: selected !== null ? "white" : "#b0bec5",
-              padding: "0.75rem 2rem",
-              cursor: selected !== null ? "pointer" : "not-allowed",
+              color: selectedIndex !== null ? "white" : "#b0bec5",
+              padding: "0.82rem 1.8rem",
+              cursor: selectedIndex !== null ? "pointer" : "not-allowed",
               fontSize: "0.95rem",
               fontWeight: 700,
               transition: "background 0.3s, color 0.3s",
-              boxShadow: selected !== null ? "0 4px 14px rgba(90,155,212,0.3)" : "none",
+              boxShadow: selectedIndex !== null ? "0 4px 14px rgba(90,155,212,0.3)" : "none",
               fontFamily: "var(--font-heading)",
             }}
           >
             {isLast ? "See My Results →" : "Next →"}
-          </motion.button>
+          </button>
         </div>
       </motion.div>
     </motion.div>
