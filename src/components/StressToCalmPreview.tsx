@@ -1,272 +1,658 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, useMotionValue, useTransform, animate, AnimatePresence } from "framer-motion";
+import { interpolate } from "flubber";
 
-interface StressToCalmPreviewProps {
-  externalScore?: number | null; // When provided, overrides the slider
+// ── Tier config ────────────────────────────────────────────────────────────────
+const TIERS = [
+  { min: 0,  max: 39,  label: "Low Stress",      shortLabel: "Low",      color: "#38bdf8", glow: "rgba(56,189,248,0.55)",  skinHue: "#fef3c7", bg: "#0a1929" },
+  { min: 40, max: 59,  label: "Mild Stress",      shortLabel: "Mild",     color: "#4ade80", glow: "rgba(74,222,128,0.55)",  skinHue: "#fde8a0", bg: "#081a12" },
+  { min: 60, max: 74,  label: "Moderate Stress",  shortLabel: "Moderate", color: "#facc15", glow: "rgba(250,204,21,0.55)",  skinHue: "#fce89a", bg: "#16130a" },
+  { min: 75, max: 89,  label: "High Stress",      shortLabel: "High",     color: "#fb923c", glow: "rgba(251,146,60,0.55)",  skinHue: "#fdd0a0", bg: "#1a1005" },
+  { min: 90, max: 100, label: "Severe Stress",    shortLabel: "Severe",   color: "#f87171", glow: "rgba(248,113,113,0.55)", skinHue: "#ffc0b0", bg: "#1a0808" },
+];
+function getTier(s: number) { return TIERS.find(t => s >= t.min && s <= t.max) ?? TIERS[0]; }
+
+// ── Face SVG paths — same command count per element for smooth morphing ────────
+// ViewBox: 0 0 200 240  |  Face center ≈ (100, 115)
+// IMPORTANT: every element must have identical path command structure across states
+const FACE = {
+  // Face outline — 5 Cubic Bezier segments, identical structure
+  outline: [
+    // 0 — Low (very relaxed, soft round)
+    "M 100,42 C 140,42 158,68 158,108 C 158,150 140,185 100,195 C 60,185 42,150 42,108 C 42,68 60,42 100,42 Z",
+    // 1 — Mild
+    "M 100,43 C 139,43 157,69 157,108 C 157,150 139,184 100,194 C 61,184 43,150 43,108 C 43,69 61,43 100,43 Z",
+    // 2 — Moderate (slightly tighter jaw)
+    "M 100,43 C 138,43 156,70 157,109 C 158,151 139,183 100,193 C 61,183 42,151 43,109 C 44,70 62,43 100,43 Z",
+    // 3 — High (tense, slightly narrower top)
+    "M 100,44 C 137,44 155,71 156,110 C 157,152 138,183 100,193 C 62,183 43,152 44,110 C 45,71 63,44 100,44 Z",
+    // 4 — Severe (pulled, jaw tense)
+    "M 100,44 C 136,44 154,72 155,111 C 156,153 137,184 100,194 C 63,184 44,153 45,111 C 46,72 64,44 100,44 Z",
+  ],
+  // Left eyebrow — Q command, same structure
+  browL: [
+    // 0 — Low: relaxed arch, slightly raised
+    "M 62,90 Q 73,82 84,88",
+    // 1 — Mild: neutral
+    "M 62,89 Q 73,81 84,87",
+    // 2 — Moderate: inner corner dips (concern)
+    "M 62,87 Q 70,89 84,85",
+    // 3 — High: stronger furrow
+    "M 62,83 Q 68,91 84,82",
+    // 4 — Severe: dramatic inner furrow, raised outer
+    "M 62,80 Q 67,94 84,79",
+  ],
+  // Right eyebrow (mirrored)
+  browR: [
+    "M 116,88 Q 127,82 138,90",
+    "M 116,87 Q 127,81 138,89",
+    "M 116,85 Q 130,89 138,87",
+    "M 116,82 Q 132,91 138,83",
+    "M 116,79 Q 133,94 138,80",
+  ],
+  // Left eye outline (entire eye shape — top lid + bottom, same bezier count)
+  eyeOutL: [
+    // 0 — Low: slightly heavy-lidded (peaceful, dreamy)
+    "M 63,106 C 68,100 78,100 83,106 C 78,114 68,114 63,106 Z",
+    // 1 — Mild: natural open
+    "M 63,104 C 68,97 78,97 83,104 C 78,113 68,113 63,104 Z",
+    // 2 — Moderate: alert, wider
+    "M 63,103 C 68,95 78,95 83,103 C 78,113 68,113 63,103 Z",
+    // 3 — High: wider, slight squint upper
+    "M 63,102 C 68,93 78,93 83,102 C 78,113 68,113 63,102 Z",
+    // 4 — Severe: wide open, almost circular
+    "M 63,101 C 68,90 78,90 83,101 C 78,114 68,114 63,101 Z",
+  ],
+  // Right eye outline
+  eyeOutR: [
+    "M 117,106 C 122,100 132,100 137,106 C 132,114 122,114 117,106 Z",
+    "M 117,104 C 122,97 132,97 137,104 C 132,113 122,113 117,104 Z",
+    "M 117,103 C 122,95 132,95 137,103 C 132,113 122,113 117,103 Z",
+    "M 117,102 C 122,93 132,93 137,102 C 132,113 122,113 117,102 Z",
+    "M 117,101 C 122,90 132,90 137,101 C 132,114 122,114 117,101 Z",
+  ],
+  // Upper eyelid overlay (for blink — starts matching eyeOut top, then closes to flat line)
+  lidL: [
+    "M 63,106 C 68,100 78,100 83,106 C 78,106 68,106 63,106 Z",
+    "M 63,104 C 68,97 78,97 83,104 C 78,104 68,104 63,104 Z",
+    "M 63,103 C 68,95 78,95 83,103 C 78,103 68,103 63,103 Z",
+    "M 63,102 C 68,93 78,93 83,102 C 78,102 68,102 63,102 Z",
+    "M 63,101 C 68,90 78,90 83,101 C 78,101 68,101 63,101 Z",
+  ],
+  lidR: [
+    "M 117,106 C 122,100 132,100 137,106 C 132,106 122,106 117,106 Z",
+    "M 117,104 C 122,97 132,97 137,104 C 132,104 122,104 117,104 Z",
+    "M 117,103 C 122,95 132,95 137,103 C 132,103 122,103 117,103 Z",
+    "M 117,102 C 122,93 132,93 137,102 C 132,102 122,102 117,102 Z",
+    "M 117,101 C 122,90 132,90 137,101 C 132,101 122,101 117,101 Z",
+  ],
+  // Nose bridge (subtle, same structure)
+  nose: [
+    "M 100,115 C 96,122 95,128 97,133 C 99,135 101,135 103,133 C 105,128 104,122 100,115",
+    "M 100,115 C 96,122 95,128 97,133 C 99,135 101,135 103,133 C 105,128 104,122 100,115",
+    "M 100,115 C 96,122 95,129 97,134 C 99,136 101,136 103,134 C 105,129 104,122 100,115",
+    "M 100,115 C 96,121 95,128 97,133 C 99,135 101,135 103,133 C 105,128 104,121 100,115",
+    "M 100,115 C 96,121 95,127 97,132 C 99,134 101,134 103,132 C 105,127 104,121 100,115",
+  ],
+  // Mouth — Q cubic bezier, same command structure
+  mouth: [
+    // 0 — Low: big warm smile
+    "M 72,155 Q 100,175 128,155",
+    // 1 — Mild: gentle smile
+    "M 75,154 Q 100,168 125,154",
+    // 2 — Moderate: flat/very slight upturn
+    "M 78,154 Q 100,158 122,154",
+    // 3 — High: frown
+    "M 77,156 Q 100,145 123,156",
+    // 4 — Severe: deep frown, open tension
+    "M 73,159 Q 100,142 127,159",
+  ],
+  // Lower lip (adds volume)
+  lowerLip: [
+    "M 72,155 Q 100,178 128,155 Q 100,183 72,155 Z",
+    "M 75,154 Q 100,170 125,154 Q 100,177 75,154 Z",
+    "M 78,154 Q 100,160 122,154 Q 100,165 78,154 Z",
+    "M 77,156 Q 100,147 123,156 Q 100,152 77,156 Z",
+    "M 73,159 Q 100,144 127,159 Q 100,149 73,159 Z",
+  ],
+  // Forehead worry lines
+  wrinkle1: [
+    "M 82,75 Q 90,73 98,75",  // 0: hidden (opacity 0)
+    "M 82,75 Q 90,73 98,75",  // 1: hidden
+    "M 82,75 Q 90,73 98,75",  // 2: faint (opacity 0.3)
+    "M 81,74 Q 91,70 99,74",  // 3: visible
+    "M 80,73 Q 92,68 100,73", // 4: strong
+  ],
+  wrinkle2: [
+    "M 86,68 Q 93,66 100,68",
+    "M 86,68 Q 93,66 100,68",
+    "M 86,68 Q 93,66 100,68",
+    "M 85,67 Q 93,64 101,67",
+    "M 84,66 Q 93,62 102,66",
+  ],
+  // Cheek (just left — we'll mirror for right with transform)
+  cheekL: [
+    // 0 — Low: soft blush circle
+    "M 55,126 C 55,118 67,118 67,126 C 67,134 55,134 55,126 Z",
+    "M 55,126 C 55,118 67,118 67,126 C 67,134 55,134 55,126 Z",
+    "M 55,126 C 55,119 67,119 67,126 C 67,133 55,133 55,126 Z",
+    "M 55,126 C 55,120 67,120 67,126 C 67,132 55,132 55,126 Z",
+    "M 55,126 C 55,120 67,120 67,126 C 67,132 55,132 55,126 Z",
+  ],
+};
+
+// Feature values per state (0–4)
+const FEATURE_VALUES = [
+  // [state0, state1, state2, state3, state4]
+  // pupil radius
+  { pupilR:    [4,    4.5,   5,    5.5,    6   ] },
+  { pupilCy:   [107,  105,   104,  103,    102  ] },
+  { cheekOpacity: [0.35, 0.22, 0.08, 0,    0   ] },
+  { wrinkle1Op:   [0,    0,    0.25, 0.55,  0.85] },
+  { wrinkle2Op:   [0,    0,    0,    0.35,  0.65] },
+  { auraRadius:   [90,   90,   92,   95,   100  ] },
+];
+
+function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
+function getVal(arr: number[], tier: number, frac: number) {
+  const lo = Math.floor(tier); const hi = Math.min(4, lo + 1);
+  return lerp(arr[lo], arr[hi], frac);
 }
 
-export default function StressToCalmPreview({ externalScore = null }: StressToCalmPreviewProps) {
-  const [stressLevel, setStressLevel] = useState(50);
+// Brainwave line
+function generateWave(score: number, w: number, h: number, seed: number): string {
+  const segs = 70; const chaos = score / 100;
+  const amp = 3 + chaos * 24; const freq = 1 + chaos * 4.5;
+  return Array.from({ length: segs + 1 }, (_, i) => {
+    const x = (i / segs) * w;
+    const t = (i / segs) * Math.PI * 2 * freq + seed;
+    const noise = chaos > 0.35 ? Math.sin(t * 3.9 + seed * 1.5) * amp * 0.5 * chaos : 0;
+    const y = h / 2 + Math.sin(t) * amp + noise;
+    return `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).join(" ");
+}
 
-  // Sync with external score from survey
+// ── Morphing path hook via flubber ─────────────────────────────────────────────
+function useMorphPath(paths: string[], tierFrac: number) {
+  const progress = useMotionValue(tierFrac);
+  const clampedCount = paths.length - 1;
+
+  const mixers = useRef<((t: number) => string)[]>([]);
   useEffect(() => {
-    if (externalScore !== null) {
-      setStressLevel(externalScore);
-    }
+    mixers.current = paths.slice(0, -1).map((p, i) =>
+      interpolate(p, paths[i + 1], { maxSegmentLength: 2 })
+    );
+  }, [paths]);
+
+  const d = useTransform(progress, (v: number) => {
+    const clamped = Math.max(0, Math.min(clampedCount, v));
+    const lo = Math.floor(clamped); const frac = clamped - lo;
+    if (frac === 0) return paths[lo];
+    const mixer = mixers.current[lo];
+    return mixer ? mixer(frac) : paths[lo];
+  });
+
+  useEffect(() => {
+    animate(progress, tierFrac, { duration: 0.7, ease: [0.4, 0, 0.2, 1] });
+  }, [tierFrac, progress]);
+
+  return d;
+}
+
+// ── Animated integer counter ───────────────────────────────────────────────────
+function AnimatedCount({ value }: { value: number }) {
+  const [shown, setShown] = useState(value);
+  const prev = useRef(value);
+  useEffect(() => {
+    const start = prev.current; const end = value;
+    const dur = 600; const t0 = performance.now();
+    const step = () => {
+      const t = Math.min(1, (performance.now() - t0) / dur);
+      const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      setShown(Math.round(start + (end - start) * ease));
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+    prev.current = value;
+  }, [value]);
+  return <>{shown}</>;
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
+interface Props { externalScore?: number | null; }
+
+export default function StressToCalmPreview({ externalScore = null }: Props) {
+  const [stressLevel, setStressLevel] = useState(0);
+  const [blinking, setBlinking] = useState(false);
+  const [waveSeed, setWaveSeed] = useState(0);
+  const waveRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const blinkRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (externalScore !== null) setStressLevel(externalScore);
   }, [externalScore]);
 
-  // Determine current state
-  const getState = (level: number) => {
-    if (level < 33) return "relaxed";
-    if (level < 66) return "focused";
-    return "stressed";
-  };
+  // Brainwave animation
+  useEffect(() => {
+    waveRef.current = setInterval(() => setWaveSeed(s => s + 0.09), 50);
+    return () => { if (waveRef.current) clearInterval(waveRef.current); };
+  }, []);
 
-  const currentState = getState(stressLevel);
+  // Blink scheduler (more often when stressed)
+  useEffect(() => {
+    const scheduleNext = () => {
+      const interval = stressLevel > 74 ? 1500 + Math.random() * 1500 : 3000 + Math.random() * 3000;
+      blinkRef.current = setTimeout(() => {
+        setBlinking(true);
+        setTimeout(() => { setBlinking(false); scheduleNext(); }, 140);
+      }, interval);
+    };
+    scheduleNext();
+    return () => { if (blinkRef.current) clearTimeout(blinkRef.current); };
+  }, [stressLevel]);
 
-  // Dynamic visual properties
-  const visuals = {
-    relaxed: {
-      color: "#38BDF8", // Sky 400
-      glow: "rgba(56, 189, 248, 0.5)",
-      // Smooth, symmetrical face
-      head: "M 20,40 Q 20,80 50,90 Q 80,80 80,40 Q 80,10 50,10 Q 20,10 20,40 Z",
-      earL: "M 20,50 Q 15,50 15,60 Q 15,70 20,70",
-      earR: "M 80,50 Q 85,50 85,60 Q 85,70 80,70",
-      eyeL: "M 32,45 Q 40,38 48,45", // Soft arc
-      eyeR: "M 52,45 Q 60,38 68,45",
-      mouth: "M 35,68 Q 50,78 65,68", // Smile
-      filter: "drop-shadow(0px 0px 8px rgba(56, 189, 248, 0.6))",
-      scale: [1, 1.02, 1],
-    },
-    focused: {
-      color: "#818CF8", // Indigo 400
-      glow: "rgba(129, 140, 248, 0.5)",
-      // Geometric, defined jawline
-      head: "M 25,30 L 25,60 L 50,85 L 75,60 L 75,30 L 50,15 Z",
-      earL: "M 25,50 L 20,55 L 25,60",
-      earR: "M 75,50 L 80,55 L 75,60",
-      eyeL: "M 30,45 L 42,45 L 42,50 L 30,50 Z", // Rectangular
-      eyeR: "M 58,45 L 70,45 L 70,50 L 58,50 Z",
-      mouth: "M 38,70 L 62,70", // Straight line
-      filter: "drop-shadow(0px 0px 4px rgba(129, 140, 248, 0.8))",
-      scale: 1,
-    },
-    stressed: {
-      color: "#F87171", // Red 400
-      glow: "rgba(248, 113, 113, 0.5)",
-      // Asymmetric, jagged
-      head: "M 22,35 L 18,65 L 45,88 L 82,62 L 78,28 L 52,12 L 35,22 Z",
-      earL: "M 18,55 L 12,50 L 18,65",
-      earR: "M 82,45 L 88,55 L 78,60",
-      eyeL: "M 28,42 L 35,38 L 38,52 L 25,48 Z", // Distorted poly
-      eyeR: "M 62,45 L 72,42 L 75,55 L 60,52 Z",
-      mouth: "M 35,72 L 42,65 L 50,75 L 58,68 L 65,72", // Zigzag
-      filter: "drop-shadow(0px 0px 15px rgba(248, 113, 113, 0.8))",
-      scale: [1, 0.98, 1.02, 1],
-    },
-  };
+  const tier = getTier(stressLevel);
+  const tierIdx = TIERS.indexOf(tier);
+  // fractional tier index for smooth interpolation
+  const tierFrac = tierIdx === 4 ? 4 :
+    ((stressLevel - tier.min) / (tier.max - tier.min)) + tierIdx;
 
-  const currentVisual = visuals[currentState];
+  // Interpolated scalar values
+  const cheekOp  = getVal([0.35, 0.22, 0.08, 0, 0],       tierIdx, tierFrac - tierIdx);
+  const wrinkle1 = getVal([0, 0, 0.25, 0.55, 0.85],         tierIdx, tierFrac - tierIdx);
+  const wrinkle2 = getVal([0, 0, 0,    0.35, 0.65],          tierIdx, tierFrac - tierIdx);
+  const pupilR   = getVal([4, 4.5, 5, 5.5, 6],               tierIdx, tierFrac - tierIdx);
+  const pupilCy  = getVal([107, 105, 104, 103, 102],          tierIdx, tierFrac - tierIdx);
+  const auraR    = getVal([90, 90, 92, 95, 100],              tierIdx, tierFrac - tierIdx);
 
-  // Score label shown when external score is set
-  const scoreLabel =
-    externalScore !== null
-      ? externalScore <= 19
-        ? "Minimal"
-        : externalScore <= 39
-        ? "Mild"
-        : externalScore <= 59
-        ? "Moderate"
-        : externalScore <= 79
-        ? "High"
-        : "Severe"
-      : null;
+  const showSweat = stressLevel >= 75;
+  const showTear  = stressLevel >= 90;
+
+  // SVG morphing paths
+  const faceD  = useMorphPath(FACE.outline,   tierFrac);
+  const browLD = useMorphPath(FACE.browL,     tierFrac);
+  const browRD = useMorphPath(FACE.browR,     tierFrac);
+  const eyeLD  = useMorphPath(FACE.eyeOutL,   tierFrac);
+  const eyeRD  = useMorphPath(FACE.eyeOutR,   tierFrac);
+  const lidLD  = useMorphPath(FACE.lidL,      tierFrac);
+  const lidRD  = useMorphPath(FACE.lidR,      tierFrac);
+  const noseD  = useMorphPath(FACE.nose,      tierFrac);
+  const mouthD = useMorphPath(FACE.mouth,     tierFrac);
+  const lipD   = useMorphPath(FACE.lowerLip,  tierFrac);
+  const wrnk1D = useMorphPath(FACE.wrinkle1,  tierFrac);
+  const wrnk2D = useMorphPath(FACE.wrinkle2,  tierFrac);
+  const cheekD = useMorphPath(FACE.cheekL,    tierFrac);
+
+  const skinColor    = tier.skinHue;
+  const skinShadow   = stressLevel > 70 ? "#e8a88a" : "#f5d5a8";
+  const eyeWhite     = stressLevel > 74 ? "#fff5f5" : "white";
+  const browColor    = stressLevel > 59 ? "#6b3a1f" : "#7a4528";
 
   return (
-    <div className="w-full max-w-2xl mx-auto my-12 p-8 rounded-3xl bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 shadow-2xl relative overflow-hidden">
-      {/* Tech Grid Background */}
-      <div
-        className="absolute inset-0 opacity-20 pointer-events-none"
-        style={{
-          backgroundImage: `linear-gradient(${currentVisual.color} 1px, transparent 1px), linear-gradient(90deg, ${currentVisual.color} 1px, transparent 1px)`,
-          backgroundSize: "40px 40px",
-        }}
-      />
+    <div style={{
+      width: "100%", maxWidth: "620px", margin: "2rem auto",
+      borderRadius: "28px",
+      background: `linear-gradient(160deg, ${tier.bg} 0%, #0d1117 100%)`,
+      border: "1px solid rgba(255,255,255,0.07)",
+      boxShadow: `0 0 80px ${tier.glow.replace("0.55","0.15")}, 0 24px 64px rgba(0,0,0,0.7)`,
+      padding: "2rem 2rem 1.4rem",
+      position: "relative", overflow: "hidden",
+      transition: "background 0.8s, box-shadow 0.8s",
+    }}>
+      {/* Tech grid bg */}
+      <div style={{ position:"absolute", inset:0, opacity:0.035, pointerEvents:"none",
+        backgroundImage: `linear-gradient(${tier.color} 1px, transparent 1px), linear-gradient(90deg, ${tier.color} 1px, transparent 1px)`,
+        backgroundSize:"30px 30px", transition:"background-image 0.8s" }} />
 
-      <div className="text-center mb-8 relative z-10">
-        {externalScore !== null && (
-          <motion.p
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              fontSize: "0.7rem",
-              fontFamily: "monospace",
-              color: currentVisual.color,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              marginBottom: "0.35rem",
-            }}
-          >
-            Assessment Score: {externalScore} / 100 · {scoreLabel} Stress
-          </motion.p>
-        )}
-        <div className="flex justify-center gap-2 mt-2">
-          <span className="h-1 w-1 rounded-full bg-slate-500 animate-pulse" />
-          <span className="h-1 w-1 rounded-full bg-slate-500 animate-pulse delay-75" />
-          <span className="h-1 w-1 rounded-full bg-slate-500 animate-pulse delay-150" />
+      {/* Header */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"1rem", position:"relative", zIndex:2 }}>
+        <div>
+          <p style={{ fontSize:"0.62rem", fontFamily:"monospace", color:tier.color, letterSpacing:"0.2em", textTransform:"uppercase", opacity:0.85, marginBottom:"0.15rem" }}>
+            Stress-to-Calm · Mental State
+          </p>
+          <p style={{ fontSize:"0.68rem", fontFamily:"monospace", color:"rgba(255,255,255,0.3)", letterSpacing:"0.08em" }}>
+            {externalScore !== null ? "Assessment Result" : "Demo · drag the slider"}
+          </p>
         </div>
-      </div>
-
-      <div className="relative h-72 flex items-center justify-center mb-8">
-        <motion.div
-          className="relative z-10"
-          animate={{
-            scale: currentVisual.scale,
-            filter: currentVisual.filter,
-          }}
-          transition={{
-            duration: currentState === "stressed" ? 0.2 : 4,
-            repeat: Infinity,
-            ease: currentState === "focused" ? "linear" : "easeInOut",
-          }}
-        >
-          <svg
-            viewBox="0 0 100 100"
-            style={{ width: "200px", height: "200px" }}
-            className="overflow-visible"
-          >
-            {/* Connection Nodes (Tech feel) */}
-            <circle cx="50" cy="15" r="1" fill={currentVisual.color} className="opacity-50" />
-            <circle cx="20" cy="40" r="1" fill={currentVisual.color} className="opacity-50" />
-            <circle cx="80" cy="40" r="1" fill={currentVisual.color} className="opacity-50" />
-
-            {/* Head Wireframe */}
-            <motion.path
-              d={currentVisual.head}
-              fill="none"
-              stroke={currentVisual.color}
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              animate={{ d: currentVisual.head, stroke: currentVisual.color }}
-              transition={{ duration: 0.6 }}
-            />
-            {/* Ears */}
-            <motion.path
-              d={currentVisual.earL}
-              fill="none"
-              stroke={currentVisual.color}
-              strokeWidth="1"
-              animate={{ d: currentVisual.earL, stroke: currentVisual.color }}
-              transition={{ duration: 0.6 }}
-            />
-            <motion.path
-              d={currentVisual.earR}
-              fill="none"
-              stroke={currentVisual.color}
-              strokeWidth="1"
-              animate={{ d: currentVisual.earR, stroke: currentVisual.color }}
-              transition={{ duration: 0.6 }}
-            />
-
-            {/* Features group */}
-            <g className="opacity-90">
-              <motion.path
-                d={currentVisual.eyeL}
-                fill="none"
-                stroke={currentVisual.color}
-                strokeWidth="2"
-                animate={{ d: currentVisual.eyeL, stroke: currentVisual.color }}
-                transition={{ duration: 0.4 }}
-              />
-              <motion.path
-                d={currentVisual.eyeR}
-                fill="none"
-                stroke={currentVisual.color}
-                strokeWidth="2"
-                animate={{ d: currentVisual.eyeR, stroke: currentVisual.color }}
-                transition={{ duration: 0.4 }}
-              />
-              <motion.path
-                d={currentVisual.mouth}
-                fill="none"
-                stroke={currentVisual.color}
-                strokeWidth="2"
-                animate={{
-                  d: currentVisual.mouth,
-                  stroke: currentVisual.color,
-                }}
-                transition={{ duration: 0.4 }}
-              />
-            </g>
-
-            {/* Scanning Line (only in focused/stressed) */}
-            {currentState !== "relaxed" && (
-              <motion.line
-                x1="0"
-                y1="0"
-                x2="100"
-                y2="0"
-                stroke={currentVisual.color}
-                strokeWidth="0.5"
-                opacity="0.3"
-                animate={{ y1: [0, 100], y2: [0, 100] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              />
-            )}
-          </svg>
-        </motion.div>
-
-        {/* State Indicator */}
-        <div className="absolute bottom-[-20px] text-center w-full">
-          <span
-            className="text-2xl font-bold font-mono uppercase tracking-widest transition-colors duration-300"
-            style={{
-              color: currentVisual.color,
-              textShadow: `0 0 10px ${currentVisual.color}`,
-            }}
-          >
-            {currentState}
+        <motion.div key={tier.label}
+          initial={{ opacity:0, scale:0.8 }} animate={{ opacity:1, scale:1 }}
+          style={{ display:"flex", alignItems:"center", gap:"0.5rem", padding:"0.38rem 1rem",
+            borderRadius:"99px", background:`${tier.color}18`, border:`1px solid ${tier.color}44` }}>
+          <span style={{ fontSize:"1rem" }}>{stressLevel <= 39 ? "😌" : stressLevel <= 59 ? "🙂" : stressLevel <= 74 ? "😐" : stressLevel <= 89 ? "😟" : "😰"}</span>
+          <span style={{ fontSize:"0.72rem", fontWeight:700, color:tier.color, fontFamily:"monospace", textTransform:"uppercase", letterSpacing:"0.1em" }}>
+            {tier.label}
           </span>
+        </motion.div>
+      </div>
+
+      {/* ── FACE SVG ── */}
+      <div style={{ position:"relative", zIndex:2, display:"flex", justifyContent:"center" }}>
+        <svg viewBox="0 0 200 240" width="300" height="360" style={{ display:"block", overflow:"visible" }}>
+          <defs>
+            {/* Skin gradient */}
+            <radialGradient id="skinGrad" cx="42%" cy="38%" r="60%">
+              <stop offset="0%"   stopColor={skinColor} />
+              <stop offset="100%" stopColor={skinShadow} />
+            </radialGradient>
+            {/* Aura glow behind face */}
+            <radialGradient id="auraGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"   stopColor={tier.color} stopOpacity={stressLevel > 59 ? "0.18" : "0.12"} />
+              <stop offset="100%" stopColor={tier.color} stopOpacity="0" />
+            </radialGradient>
+            {/* Eye gradient */}
+            <radialGradient id="irisL" cx="45%" cy="40%" r="55%">
+              <stop offset="0%"   stopColor={stressLevel > 74 ? "#6b2020" : stressLevel > 59 ? "#4a6b20" : "#1a4a8a"} />
+              <stop offset="100%" stopColor={stressLevel > 74 ? "#3d1010" : stressLevel > 59 ? "#2a4010" : "#0a1a50"} />
+            </radialGradient>
+            <radialGradient id="irisR" cx="45%" cy="40%" r="55%">
+              <stop offset="0%"   stopColor={stressLevel > 74 ? "#6b2020" : stressLevel > 59 ? "#4a6b20" : "#1a4a8a"} />
+              <stop offset="100%" stopColor={stressLevel > 74 ? "#3d1010" : stressLevel > 59 ? "#2a4010" : "#0a1a50"} />
+            </radialGradient>
+            <filter id="faceGlow">
+              <feGaussianBlur stdDeviation="4" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="softBlur">
+              <feGaussianBlur stdDeviation="2" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            {/* Hair gradient */}
+            <linearGradient id="hairGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%"   stopColor="#2d1a0a" />
+              <stop offset="100%" stopColor="#1a0d05" />
+            </linearGradient>
+            <clipPath id="faceClip">
+              <motion.path d={faceD} />
+            </clipPath>
+          </defs>
+
+          {/* Aura behind face */}
+          <motion.ellipse
+            cx={100} cy={115}
+            rx={auraR} ry={auraR * 1.1}
+            fill="url(#auraGrad)"
+            animate={{ rx: auraR, ry: auraR * 1.1 }}
+            transition={{ duration: 0.8 }}
+          />
+          {/* Pulsing ring for high stress */}
+          {stressLevel > 59 && (
+            <motion.ellipse cx={100} cy={115} rx={auraR + 10} ry={(auraR + 10) * 1.1}
+              fill="none" stroke={tier.color} strokeWidth={stressLevel > 74 ? 1.5 : 0.8}
+              animate={{ opacity: [0.1, 0.4, 0.1], rx: [auraR+8, auraR+14, auraR+8] }}
+              transition={{ duration: stressLevel > 74 ? 1.2 : 2, repeat: Infinity, ease:"easeInOut" }}
+            />
+          )}
+
+          {/* Hair */}
+          <motion.path
+            d="M 52,100 C 48,70 55,48 100,42 C 145,48 152,70 148,100 C 145,75 140,62 100,59 C 60,62 55,75 52,100 Z"
+            fill="url(#hairGrad)"
+            animate={{ fill: "#2d1a0a" }}
+          />
+          {/* Side hair */}
+          <path d="M 42,108 C 38,95 44,75 52,65 C 50,80 48,100 42,115 Z" fill="#1a0d05" />
+          <path d="M 158,108 C 162,95 156,75 148,65 C 150,80 152,100 158,115 Z" fill="#1a0d05" />
+
+          {/* ── FACE SKIN ── */}
+          <motion.path d={faceD} fill="url(#skinGrad)" stroke={skinShadow} strokeWidth="0.5" />
+
+          {/* Chin shadow */}
+          <ellipse cx={100} cy={190} rx={22} ry={4} fill={skinShadow} opacity={0.35} />
+
+          {/* Neck */}
+          <rect x={88} y={194} width={24} height={18} rx={6} fill={skinShadow} opacity={0.7} />
+
+          {/* ── CHEEKS (blush) ── */}
+          <motion.path d={cheekD} fill={stressLevel < 60 ? "#f97316" : "#ef4444"} opacity={cheekOp} filter="url(#softBlur)" />
+          {/* Right cheek (mirror) */}
+          <motion.path d={cheekD}
+            fill={stressLevel < 60 ? "#f97316" : "#ef4444"}
+            opacity={cheekOp}
+            filter="url(#softBlur)"
+            transform="scale(-1,1) translate(-200,0)"
+          />
+
+          {/* ── EYEBROWS ── */}
+          <motion.path d={browLD}
+            fill="none" stroke={browColor}
+            strokeWidth={stressLevel > 74 ? 3 : 2.5}
+            strokeLinecap="round"
+            animate={{ stroke: browColor }}
+            transition={{ duration: 0.5 }}
+          />
+          <motion.path d={browRD}
+            fill="none" stroke={browColor}
+            strokeWidth={stressLevel > 74 ? 3 : 2.5}
+            strokeLinecap="round"
+            animate={{ stroke: browColor }}
+            transition={{ duration: 0.5 }}
+          />
+
+          {/* ── EYES ── */}
+          {/* Left eye */}
+          <motion.path d={eyeLD} fill={eyeWhite} />
+          {/* Left iris */}
+          <motion.circle cx={73} cy={pupilCy} r={pupilR * 1.45}
+            fill="url(#irisL)"
+            animate={{ cy: pupilCy, r: pupilR * 1.45 }}
+            transition={{ duration: 0.6, ease:"easeOut" }}
+          />
+          {/* Left pupil */}
+          <motion.circle cx={73} cy={pupilCy} r={pupilR}
+            fill="#0a0a0a"
+            animate={{ cy: pupilCy, r: pupilR }}
+            transition={{ duration: 0.6, ease:"easeOut" }}
+          />
+          {/* Left highlight */}
+          <motion.circle cx={76} cy={pupilCy - 1.5} r={1.2} fill="white" opacity={0.9}
+            animate={{ cy: pupilCy - 1.5 }} transition={{ duration: 0.6 }} />
+          {/* Left lower eyelid */}
+          <motion.path d={eyeLD} fill="none" stroke={skinShadow} strokeWidth="0.8" strokeLinecap="round" opacity={0.5} />
+          {/* Left blink eyelid (face-colored overlay) */}
+          <motion.path d={lidLD} fill={skinColor}
+            animate={{ scaleY: blinking ? 1 : 0 }}
+            style={{ originX: "73px", originY: `${pupilCy}px` }}
+            transition={{ duration: 0.07 }}
+          />
+
+          {/* Right eye */}
+          <motion.path d={eyeRD} fill={eyeWhite} />
+          <motion.circle cx={127} cy={pupilCy} r={pupilR * 1.45}
+            fill="url(#irisR)"
+            animate={{ cy: pupilCy, r: pupilR * 1.45 }}
+            transition={{ duration: 0.6, ease:"easeOut" }}
+          />
+          <motion.circle cx={127} cy={pupilCy} r={pupilR}
+            fill="#0a0a0a"
+            animate={{ cy: pupilCy, r: pupilR }}
+            transition={{ duration: 0.6, ease:"easeOut" }}
+          />
+          <motion.circle cx={130} cy={pupilCy - 1.5} r={1.2} fill="white" opacity={0.9}
+            animate={{ cy: pupilCy - 1.5 }} transition={{ duration: 0.6 }} />
+          <motion.path d={eyeRD} fill="none" stroke={skinShadow} strokeWidth="0.8" strokeLinecap="round" opacity={0.5} />
+          <motion.path d={lidRD} fill={skinColor}
+            animate={{ scaleY: blinking ? 1 : 0 }}
+            style={{ originX: "127px", originY: `${pupilCy}px` }}
+            transition={{ duration: 0.07 }}
+          />
+
+          {/* ── NOSE ── */}
+          <motion.path d={noseD} fill="none" stroke={skinShadow} strokeWidth="1.2" strokeLinecap="round" opacity={0.6} />
+          {/* Nostrils */}
+          <ellipse cx={95.5} cy={134} rx={2.2} ry={1.4} fill={skinShadow} opacity={0.5} />
+          <ellipse cx={104.5} cy={134} rx={2.2} ry={1.4} fill={skinShadow} opacity={0.5} />
+
+          {/* ── MOUTH ── */}
+          {/* Lower lip fill — subtle volume */}
+          <motion.path d={lipD} fill={skinShadow} opacity={0.55} />
+          {/* Mouth line */}
+          <motion.path d={mouthD} fill="none"
+            stroke={stressLevel > 59 ? "#c0724a" : "#c88060"}
+            strokeWidth="2.5" strokeLinecap="round"
+            animate={{ stroke: stressLevel > 59 ? "#c0724a" : "#c88060" }}
+            transition={{ duration: 0.5 }}
+          />
+          {/* Mouth corners — dimples at low stress */}
+          {stressLevel < 60 && (
+            <>
+              <circle cx={72} cy={155} r={1.5} fill={skinShadow} opacity={0.6} />
+              <circle cx={128} cy={155} r={1.5} fill={skinShadow} opacity={0.6} />
+            </>
+          )}
+
+          {/* ── FOREHEAD WRINKLES ── */}
+          <motion.path d={wrnk1D} fill="none" stroke={skinShadow} strokeWidth="1"
+            strokeLinecap="round" opacity={wrinkle1} />
+          <motion.path d={wrnk2D} fill="none" stroke={skinShadow} strokeWidth="0.8"
+            strokeLinecap="round" opacity={wrinkle2} />
+
+          {/* ── SWEAT DROP ── */}
+          <AnimatePresence>
+            {showSweat && (
+              <motion.g key="sweat">
+                <motion.path
+                  d="M 130,72 C 128,76 126,80 128,83 C 130,86 134,86 136,83 C 138,80 136,76 130,72 Z"
+                  fill="#93c5fd" opacity={0.85}
+                  initial={{ y: 0, opacity: 0 }}
+                  animate={{ y: [0, 18, 28], opacity: [0, 0.85, 0] }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 1.5, ease: "easeIn" }}
+                />
+              </motion.g>
+            )}
+          </AnimatePresence>
+
+          {/* ── TEARS (severe) ── */}
+          <AnimatePresence>
+            {showTear && (
+              <>
+                <motion.ellipse key="tearL" cx={65} cy={113} rx={2} ry={3}
+                  fill="#bfdbfe" opacity={0.9}
+                  initial={{ y: 0, opacity: 0 }}
+                  animate={{ y: [0, 20, 48], opacity: [0, 0.9, 0] }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 0.8, ease:"easeIn" }}
+                />
+                <motion.ellipse key="tearR" cx={135} cy={113} rx={2} ry={3}
+                  fill="#bfdbfe" opacity={0.9}
+                  initial={{ y: 0, opacity: 0 }}
+                  animate={{ y: [0, 20, 48], opacity: [0, 0.9, 0] }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 1.6, ease:"easeIn", delay: 0.7 }}
+                />
+              </>
+            )}
+          </AnimatePresence>
+
+          {/* Subtle face sheen */}
+          <motion.path d={faceD}
+            fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5"
+          />
+        </svg>
+
+        {/* Score badge over face */}
+        <div style={{
+          position:"absolute", bottom:"24px", left:"50%", transform:"translateX(-50%)",
+          background:"rgba(0,0,0,0.5)", backdropFilter:"blur(12px)",
+          borderRadius:"99px", padding:"0.3rem 1.1rem",
+          border:`1px solid ${tier.color}44`, display:"flex", alignItems:"center", gap:"0.4rem",
+        }}>
+          <motion.span animate={{ color: tier.color, textShadow:`0 0 12px ${tier.color}` }}
+            transition={{ duration:0.5 }}
+            style={{ fontSize:"1.5rem", fontWeight:900, fontFamily:"monospace" }}>
+            <AnimatedCount value={stressLevel} />
+          </motion.span>
+          <span style={{ fontSize:"0.7rem", fontFamily:"monospace", color:"rgba(255,255,255,0.35)", letterSpacing:"0.1em" }}>/100</span>
         </div>
       </div>
 
-      {/* Slider — only shown when no external score */}
+      {/* ── EEG BRAINWAVE STRIP ── */}
+      <div style={{ marginTop:"0.5rem", background:"rgba(0,0,0,0.3)", borderRadius:"12px",
+        border:"1px solid rgba(255,255,255,0.06)", padding:"0.5rem 1rem",
+        overflow:"hidden", position:"relative", zIndex:2 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"0.25rem" }}>
+          <span style={{ fontSize:"0.58rem", fontFamily:"monospace", color:"rgba(255,255,255,0.28)", letterSpacing:"0.15em", textTransform:"uppercase" }}>
+            EEG · Stress Oscillation
+          </span>
+          <motion.span animate={{ opacity:[1, 0.3, 1] }} transition={{ duration:1, repeat:Infinity }}
+            style={{ fontSize:"0.58rem", fontFamily:"monospace", color:tier.color }}>
+            ● LIVE
+          </motion.span>
+        </div>
+        <svg width="100%" height="46" viewBox="0 0 540 46" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="eegGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stopColor={tier.color} stopOpacity="0"/>
+              <stop offset="12%"  stopColor={tier.color} stopOpacity="1"/>
+              <stop offset="88%"  stopColor={tier.color} stopOpacity="1"/>
+              <stop offset="100%" stopColor={tier.color} stopOpacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d={generateWave(stressLevel, 540, 46, waveSeed - 0.6)}
+            fill="none" stroke={tier.color} strokeWidth="1" opacity="0.12" strokeLinecap="round" />
+          <path d={generateWave(stressLevel, 540, 46, waveSeed)}
+            fill="none" stroke="url(#eegGrad)" strokeWidth="1.8" strokeLinecap="round" />
+          <line x1="0" y1="23" x2="540" y2="23" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="3 3"/>
+        </svg>
+      </div>
+
+      {/* ── 5 TIER PILLS ── */}
+      <div style={{ display:"flex", justifyContent:"space-between", marginTop:"0.85rem",
+        gap:"0.3rem", position:"relative", zIndex:2, padding:"0.6rem 0.75rem",
+        background:"rgba(255,255,255,0.025)", borderRadius:"12px",
+        border:"1px solid rgba(255,255,255,0.05)"}}>
+        {TIERS.map((t, i) => {
+          const active = stressLevel >= t.min && stressLevel <= t.max;
+          return (
+            <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:"0.28rem" }}>
+              <motion.div animate={{
+                background: active ? t.color : "transparent",
+                boxShadow: active ? `0 0 10px ${t.glow}` : "none",
+                scale: active ? 1.25 : 1,
+              }} transition={{ duration:0.4 }} style={{
+                width:9, height:9, borderRadius:"50%",
+                border:`2px solid ${active ? t.color : "rgba(255,255,255,0.12)"}`,
+                transition:"border-color 0.4s",
+              }} />
+              <span style={{
+                fontSize:"0.5rem", fontFamily:"monospace", textTransform:"uppercase",
+                color: active ? t.color : "rgba(255,255,255,0.18)",
+                letterSpacing:"0.04em", textAlign:"center", fontWeight: active ? 700 : 400,
+                transition:"color 0.4s",
+              }}>{t.shortLabel}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── SLIDER ── */}
       {externalScore === null && (
-        <div className="relative z-20 px-4 mt-8">
-          <div className="flex items-center gap-4">
-            <span className="text-xs font-mono text-cyan-400">NORM</span>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={stressLevel}
-              onChange={(e) => setStressLevel(Number(e.target.value))}
-              className="w-full h-1 bg-slate-700 rounded-none appearance-none cursor-pointer accent-current hover:bg-slate-600 transition-colors"
-              style={{ accentColor: currentVisual.color }}
-            />
-            <span className="text-xs font-mono text-red-400">CRIT</span>
+        <div style={{ marginTop:"0.85rem", position:"relative", zIndex:2 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"0.35rem" }}>
+            <span style={{ fontSize:"0.58rem", fontFamily:"monospace", color:"rgba(255,255,255,0.3)", letterSpacing:"0.12em" }}>CALM</span>
+            <span style={{ fontSize:"0.58rem", fontFamily:"monospace", color:"rgba(255,255,255,0.3)", letterSpacing:"0.12em" }}>CRITICAL</span>
           </div>
-          <div className="flex justify-between mt-2 text-[10px] font-mono text-slate-500 uppercase">
-            <span>0%</span>
-            <span>50%</span>
-            <span>100%</span>
-          </div>
+          <input type="range" min="0" max="100" value={stressLevel}
+            onChange={e => setStressLevel(Number(e.target.value))}
+            style={{ width:"100%", height:"6px", borderRadius:"99px",
+              appearance:"none", outline:"none", cursor:"pointer",
+              background:`linear-gradient(to right, ${tier.color} ${stressLevel}%, rgba(255,255,255,0.07) ${stressLevel}%)`,
+              accentColor: tier.color }} />
+          <p style={{ textAlign:"center", fontSize:"0.58rem", fontFamily:"monospace",
+            color:"rgba(255,255,255,0.18)", marginTop:"0.4rem", letterSpacing:"0.1em" }}>
+            DRAG TO EXPLORE STRESS STATES
+          </p>
         </div>
       )}
 
-      {/* When score is from survey, show a hint */}
       {externalScore !== null && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-center text-xs font-mono text-slate-500 mt-8 relative z-20"
-        >
-          Visualizer updated from your survey · scroll down for your solution
+        <motion.p initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.9 }}
+          style={{ textAlign:"center", fontSize:"0.62rem", fontFamily:"monospace",
+            color:"rgba(255,255,255,0.22)", marginTop:"0.85rem", letterSpacing:"0.1em",
+            position:"relative", zIndex:2 }}>
+          ↑ Visualizer updated from your assessment · scroll down for your personalized solution
         </motion.p>
       )}
     </div>
