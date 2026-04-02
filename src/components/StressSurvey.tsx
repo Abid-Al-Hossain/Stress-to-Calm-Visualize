@@ -250,6 +250,7 @@ interface StressSurveyProps {
 export default function StressSurvey({ onComplete, onClose }: StressSurveyProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, AnswerState>>({});
+  const [viewportWidth, setViewportWidth] = useState(1024);
 
   const question = QUESTIONS[currentIndex];
   const total = QUESTIONS.length;
@@ -305,6 +306,16 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
     };
   }, []);
 
+  useEffect(() => {
+    const updateViewport = () => setViewportWidth(window.innerWidth);
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
+
+  const isMobile = viewportWidth < 640;
+  const isTablet = viewportWidth < 900;
+
   return (
     // Backdrop — soft blur matching site background
     <motion.div
@@ -319,7 +330,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "1rem",
+        padding: isMobile ? "0.5rem" : "1rem",
         background: "rgba(180, 215, 235, 0.68)",
       }}
     >
@@ -330,13 +341,13 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
         transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
         style={{
           width: "100%",
-          maxWidth: "940px",
-          height: "min(84vh, 760px)",
+          maxWidth: isTablet ? "100%" : "940px",
+          height: isMobile ? "calc(100vh - 1rem)" : "min(84vh, 760px)",
           // Glass card — same as .card / .auth-card on the site
           background: "rgba(255, 255, 255, 0.96)",
           border: "1px solid rgba(255, 255, 255, 0.55)",
-          borderRadius: "24px",
-          padding: "1.15rem 1.15rem 0.95rem",
+          borderRadius: isMobile ? "20px" : "24px",
+          padding: isMobile ? "0.9rem 0.9rem 0.85rem" : "1.15rem 1.15rem 0.95rem",
           boxShadow: "0 20px 60px rgba(90, 155, 212, 0.18), 0 4px 16px rgba(30, 41, 59, 0.06)",
           maxHeight: "84vh",
           position: "relative",
@@ -358,8 +369,8 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
           onClick={onClose}
           style={{
             position: "absolute",
-            top: "1rem",
-            right: "1rem",
+            top: isMobile ? "0.85rem" : "1rem",
+            right: isMobile ? "0.85rem" : "1rem",
             zIndex: 4,
             background: "rgba(255,255,255,0.9)",
             border: "1px solid rgba(90,155,212,0.16)",
@@ -367,8 +378,8 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
             color: "#607d8b",
             fontSize: "1.1rem",
             lineHeight: 1,
-            width: "38px",
-            height: "38px",
+            width: isMobile ? "36px" : "38px",
+            height: isMobile ? "36px" : "38px",
             borderRadius: "50%",
             transition: "background 0.2s, color 0.2s",
             boxShadow: "0 8px 20px rgba(90,155,212,0.08)",
@@ -389,7 +400,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gridTemplateColumns: isTablet ? "1fr" : "minmax(280px, 0.92fr) minmax(320px, 1.08fr)",
             gap: "1rem",
             alignItems: "stretch",
             height: "100%",
@@ -404,13 +415,13 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
               flexDirection: "column",
               gap: "0.8rem",
               minHeight: 0,
-              overflowY: "auto",
+              overflowY: isTablet ? "visible" : "auto",
               overscrollBehavior: "contain",
               WebkitOverflowScrolling: "touch",
-              paddingRight: "0.15rem",
+              paddingRight: isTablet ? "0" : "0.15rem",
             }}
           >
-            <div style={{ display: "flex", alignItems: "flex-start", gap: "0.85rem", padding: "0.9rem 3.5rem 0.9rem 1rem", borderRadius: "18px", background: "rgba(255,255,255,0.72)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 10px 30px rgba(90,155,212,0.08)" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "0.85rem", padding: isMobile ? "0.85rem 3.1rem 0.85rem 0.9rem" : "0.9rem 3.5rem 0.9rem 1rem", borderRadius: "18px", background: "rgba(255,255,255,0.72)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 10px 30px rgba(90,155,212,0.08)" }}>
               <div style={{ flex: 1 }}>
                 <p style={{ margin: "0 0 0.35rem", fontSize: "0.78rem", fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: currentPart.color }}>
                   {currentPart.title}
@@ -602,7 +613,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
             </div>
           </div>
 
-        <div style={{ position: "relative", zIndex: 1, padding: "0.95rem 0.9rem 1rem 1rem", borderRadius: "20px", background: "linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(248,251,255,0.96) 100%)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 12px 28px rgba(90,155,212,0.06)", minHeight: 0, height: "100%", overflowY: "auto", overscrollBehavior: "contain", WebkitOverflowScrolling: "touch", boxSizing: "border-box" }}>
+        <div style={{ position: "relative", zIndex: 1, padding: isMobile ? "0.85rem 0.75rem 0.9rem 0.85rem" : "0.95rem 0.9rem 1rem 1rem", borderRadius: "20px", background: "linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(248,251,255,0.96) 100%)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 12px 28px rgba(90,155,212,0.06)", minHeight: 0, height: "100%", overflowY: "auto", overscrollBehavior: "contain", WebkitOverflowScrolling: "touch", boxSizing: "border-box" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", padding: "0.32rem 0.7rem", borderRadius: "999px", background: `${currentSection.color}14`, color: currentSection.color, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.7rem" }}>
               <span>{currentSection.emoji}</span>
               <span>{question.category}</span>
@@ -610,7 +621,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
             {/* English question */}
             <h2 style={{
               color: "#2c3e50",
-              fontSize: "1.18rem",
+              fontSize: isMobile ? "1.02rem" : "1.18rem",
               fontWeight: 800,
               lineHeight: 1.35,
               marginBottom: "0.55rem",
@@ -620,7 +631,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
               {question.en}
             </h2>
             {/* Bengali */}
-            <p style={{ color: "#78909c", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "0.95rem", maxWidth: "34rem" }}>
+            <p style={{ color: "#78909c", fontSize: isMobile ? "0.84rem" : "0.9rem", lineHeight: 1.6, marginBottom: "0.95rem", maxWidth: "34rem" }}>
               {question.bn}
             </p>
 
@@ -636,7 +647,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
                     style={{
                       width: "100%",
                       textAlign: "left",
-                      padding: "0.8rem 0.9rem",
+                      padding: isMobile ? "0.72rem 0.78rem" : "0.8rem 0.9rem",
                       borderRadius: "16px",
                       cursor: "pointer",
                       border: isActive
@@ -668,16 +679,16 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
                       <span style={{
                         color: isActive ? "#2c3e50" : "#37474f",
                         fontWeight: isActive ? 800 : 600,
-                        fontSize: "0.92rem",
+                        fontSize: isMobile ? "0.86rem" : "0.92rem",
                         display: "block",
                         transition: "color 0.2s",
                         lineHeight: 1.35,
                       }}>
                         {opt.label}
                       </span>
-                      <span style={{ color: "#90a4ae", fontSize: "0.8rem", lineHeight: 1.45, display: "block", marginTop: "0.1rem" }}>{opt.labelBn}</span>
+                      <span style={{ color: "#90a4ae", fontSize: isMobile ? "0.75rem" : "0.8rem", lineHeight: 1.45, display: "block", marginTop: "0.1rem" }}>{opt.labelBn}</span>
                     </span>
-                    <span style={{ color: isActive ? currentSection.color : "#b0bec5", fontWeight: 700, fontSize: "0.74rem", letterSpacing: "0.08em", paddingTop: "0.18rem", textTransform: "uppercase" }}>
+                    <span style={{ color: isActive ? currentSection.color : "#b0bec5", fontWeight: 700, fontSize: isMobile ? "0.68rem" : "0.74rem", letterSpacing: "0.08em", paddingTop: "0.18rem", textTransform: "uppercase" }}>
                       {isActive ? "Selected" : "Choose"}
                     </span>
                   </button>
@@ -689,30 +700,31 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
         </div>
 
         {/* Navigation */}
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)", alignItems: "center", gap: "0.75rem", marginTop: "0.1rem", marginLeft: "-1.15rem", marginRight: "-1.15rem", marginBottom: "-0.95rem", padding: "0.85rem 1.15rem 0.95rem", position: "relative", zIndex: 3, background: "#ffffff", borderTop: "1px solid rgba(90,155,212,0.12)", boxShadow: "0 -10px 24px rgba(90,155,212,0.08)" }}>
-          <div style={{ fontSize: "0.82rem", color: "#78909c", fontWeight: 600, minWidth: 0 }}>
+        <div style={{ display: isMobile ? "flex" : "grid", gridTemplateColumns: isMobile ? undefined : "minmax(0, 1fr) auto minmax(0, 1fr)", flexDirection: isMobile ? "column" : undefined, alignItems: "center", gap: "0.75rem", marginTop: "0.1rem", marginLeft: isMobile ? "-0.9rem" : "-1.15rem", marginRight: isMobile ? "-0.9rem" : "-1.15rem", marginBottom: isMobile ? "-0.85rem" : "-0.95rem", padding: isMobile ? "0.8rem 0.9rem 0.85rem" : "0.85rem 1.15rem 0.95rem", position: "relative", zIndex: 3, background: "#ffffff", borderTop: "1px solid rgba(90,155,212,0.12)", boxShadow: "0 -10px 24px rgba(90,155,212,0.08)" }}>
+          <div style={{ fontSize: "0.82rem", color: "#78909c", fontWeight: 600, minWidth: 0, width: isMobile ? "100%" : undefined, textAlign: isMobile ? "center" : "left" }}>
             {selectedIndex !== null ? "Choice saved" : "Choose one answer to continue"}
           </div>
-          <button
-            id="survey-prev-btn"
-            onClick={handlePrev}
-            disabled={currentIndex === 0}
-            style={{
-              background: "none",
-              border: "1.5px solid rgba(90,155,212,0.25)",
-              borderRadius: "99px",
-              color: currentIndex === 0 ? "#b0bec5" : "#546e7a",
-              padding: "0.65rem 1.1rem",
-              cursor: currentIndex === 0 ? "not-allowed" : "pointer",
-              fontSize: "0.9rem",
-              fontWeight: 600,
-              transition: "all 0.2s",
-              fontFamily: "var(--font-heading)",
-            }}
-          >
-            Back
-          </button>
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", justifyContent: isMobile ? "stretch" : "center", width: isMobile ? "100%" : undefined, gap: "0.75rem" }}>
+            <button
+              id="survey-prev-btn"
+              onClick={handlePrev}
+              disabled={currentIndex === 0}
+              style={{
+                background: "none",
+                border: "1.5px solid rgba(90,155,212,0.25)",
+                borderRadius: "99px",
+                color: currentIndex === 0 ? "#b0bec5" : "#546e7a",
+                padding: "0.65rem 1.1rem",
+                cursor: currentIndex === 0 ? "not-allowed" : "pointer",
+                fontSize: "0.9rem",
+                fontWeight: 600,
+                transition: "all 0.2s",
+                fontFamily: "var(--font-heading)",
+                flex: isMobile ? 1 : undefined,
+              }}
+            >
+              Back
+            </button>
             <button
               id="survey-next-btn"
               onClick={handleNext}
@@ -731,6 +743,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
                 transition: "background 0.3s, color 0.3s",
                 boxShadow: selectedIndex !== null ? "0 4px 14px rgba(90,155,212,0.3)" : "none",
                 fontFamily: "var(--font-heading)",
+                flex: isMobile ? 1 : undefined,
               }}
             >
               {isLast ? "See My Results" : isLastScoredQuestion ? "Continue to Preferences" : "Next"}

@@ -227,12 +227,20 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
   const [stressLevel, setStressLevel] = useState(0);
   const [blinking, setBlinking] = useState(false);
   const [waveSeed, setWaveSeed] = useState(0);
+  const [viewportWidth, setViewportWidth] = useState(1024);
   const waveRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const blinkRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (externalScore !== null) setStressLevel(externalScore);
   }, [externalScore]);
+
+  useEffect(() => {
+    const updateViewport = () => setViewportWidth(window.innerWidth);
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
 
   // Brainwave animation
   useEffect(() => {
@@ -294,15 +302,18 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
   const panelSurface = "rgba(255,255,255,0.62)";
   const panelSurfaceStrong = "rgba(255,255,255,0.76)";
   const panelBorder = "rgba(90,155,212,0.18)";
+  const isMobile = viewportWidth < 640;
+  const isCompact = viewportWidth < 480;
+  const faceWidth = isCompact ? 146 : isMobile ? 162 : 184;
 
   return (
     <div style={{
-      width: "100%", maxWidth: "500px", margin: "1rem auto",
+      width: "100%", maxWidth: isMobile ? "100%" : "500px", margin: isMobile ? "0.75rem auto" : "1rem auto",
       borderRadius: "22px",
       background: `linear-gradient(160deg, ${tier.bg} 0%, rgba(255,255,255,0.94) 100%)`,
       border: "1px solid rgba(255,255,255,0.75)",
       boxShadow: `0 18px 48px rgba(90,155,212,0.18), 0 0 44px ${tier.glow.replace("0.55","0.12")}`,
-      padding: "0.8rem 0.8rem 0.7rem",
+      padding: isCompact ? "0.7rem 0.7rem 0.62rem" : isMobile ? "0.78rem 0.78rem 0.64rem" : "0.8rem 0.8rem 0.7rem",
       position: "relative", overflow: "hidden",
       transition: "background 0.8s, box-shadow 0.8s",
     }}>
@@ -312,21 +323,21 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
         backgroundSize:"30px 30px", transition:"background-image 0.8s" }} />
 
       {/* Header */}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"0.45rem", position:"relative", zIndex:2, gap:"0.5rem" }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:isMobile ? "flex-start" : "center", flexWrap:isMobile ? "wrap" : "nowrap", marginBottom:"0.45rem", position:"relative", zIndex:2, gap:"0.5rem" }}>
         <div>
-          <p style={{ fontSize:"0.68rem", fontFamily:"monospace", color:tier.color, letterSpacing:"0.16em", textTransform:"uppercase", opacity:0.85, marginBottom:"0.12rem" }}>
+          <p style={{ fontSize:isCompact ? "0.58rem" : "0.68rem", fontFamily:"monospace", color:tier.color, letterSpacing:"0.16em", textTransform:"uppercase", opacity:0.85, marginBottom:"0.12rem" }}>
             Stress-to-Calm · Mental State
           </p>
-          <p style={{ fontSize:"0.78rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.05em" }}>
+          <p style={{ fontSize:isCompact ? "0.66rem" : "0.78rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.05em" }}>
             {externalScore !== null ? "Assessment Result" : "Demo · drag the slider"}
           </p>
         </div>
         <motion.div key={tier.label}
           initial={{ opacity:0, scale:0.8 }} animate={{ opacity:1, scale:1 }}
-          style={{ display:"flex", alignItems:"center", gap:"0.42rem", padding:"0.3rem 0.72rem",
+          style={{ display:"flex", alignItems:"center", gap:"0.42rem", padding:isCompact ? "0.25rem 0.58rem" : "0.3rem 0.72rem",
             borderRadius:"99px", background:panelSurfaceStrong, border:`1px solid ${tier.color}44`, boxShadow:"0 8px 24px rgba(90,155,212,0.08)" }}>
-          <span style={{ fontSize:"1rem" }}>{stressLevel <= 39 ? "😌" : stressLevel <= 59 ? "🙂" : stressLevel <= 74 ? "😐" : stressLevel <= 89 ? "😟" : "😰"}</span>
-          <span style={{ fontSize:"0.76rem", fontWeight:700, color:tier.color, fontFamily:"monospace", textTransform:"uppercase", letterSpacing:"0.08em" }}>
+          <span style={{ fontSize:isCompact ? "0.9rem" : "1rem" }}>{stressLevel <= 39 ? "😌" : stressLevel <= 59 ? "🙂" : stressLevel <= 74 ? "😐" : stressLevel <= 89 ? "😟" : "😰"}</span>
+          <span style={{ fontSize:isCompact ? "0.66rem" : "0.76rem", fontWeight:700, color:tier.color, fontFamily:"monospace", textTransform:"uppercase", letterSpacing:"0.08em" }}>
             {tier.label}
           </span>
         </motion.div>
@@ -334,7 +345,7 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
 
       {/* ── FACE SVG ── */}
       <div style={{ position:"relative", zIndex:2, display:"flex", justifyContent:"center" }}>
-        <svg viewBox="0 0 200 240" width="184" height="220" style={{ display:"block", overflow:"visible", width:"min(184px, 100%)", height:"auto", marginTop:"-0.35rem", marginBottom:"-0.1rem" }}>
+        <svg viewBox="0 0 200 240" width={faceWidth} height={Math.round(faceWidth * 1.2)} style={{ display:"block", overflow:"visible", width:`min(${faceWidth}px, 100%)`, height:"auto", marginTop:isMobile ? "-0.22rem" : "-0.35rem", marginBottom:"-0.1rem" }}>
           <defs>
             {/* Skin gradient */}
             <radialGradient id="skinGrad" cx="42%" cy="38%" r="60%">
@@ -543,16 +554,16 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
         <div style={{
           position:"absolute", bottom:"8px", left:"50%", transform:"translateX(-50%)",
           background:panelSurfaceStrong, backdropFilter:"blur(12px)",
-          borderRadius:"99px", padding:"0.2rem 0.72rem",
+          borderRadius:"99px", padding:isCompact ? "0.16rem 0.58rem" : "0.2rem 0.72rem",
           border:`1px solid ${tier.color}44`, display:"flex", alignItems:"center", gap:"0.4rem",
           boxShadow:"0 10px 24px rgba(90,155,212,0.12)",
         }}>
           <motion.span animate={{ color: tier.color, textShadow:`0 0 12px ${tier.color}` }}
             transition={{ duration:0.5 }}
-            style={{ fontSize:"1.15rem", fontWeight:900, fontFamily:"monospace" }}>
+            style={{ fontSize:isCompact ? "1rem" : "1.15rem", fontWeight:900, fontFamily:"monospace" }}>
             <AnimatedCount value={stressLevel} />
           </motion.span>
-          <span style={{ fontSize:"0.78rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.08em" }}>/100</span>
+          <span style={{ fontSize:isCompact ? "0.68rem" : "0.78rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.08em" }}>/100</span>
         </div>
       </div>
 
@@ -561,11 +572,11 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
         border:`1px solid ${panelBorder}`, padding:"0.26rem 0.55rem",
         overflow:"hidden", position:"relative", zIndex:2 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"0.18rem" }}>
-          <span style={{ fontSize:"0.64rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.12em", textTransform:"uppercase" }}>
+          <span style={{ fontSize:isCompact ? "0.56rem" : "0.64rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.12em", textTransform:"uppercase" }}>
             EEG · Stress Oscillation
           </span>
           <motion.span animate={{ opacity:[1, 0.3, 1] }} transition={{ duration:1, repeat:Infinity }}
-            style={{ fontSize:"0.64rem", fontFamily:"monospace", color:tier.color }}>
+            style={{ fontSize:isCompact ? "0.56rem" : "0.64rem", fontFamily:"monospace", color:tier.color }}>
             ● LIVE
           </motion.span>
         </div>
@@ -588,7 +599,7 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
 
       {/* ── 5 TIER PILLS ── */}
       <div style={{ display:"flex", justifyContent:"space-between", marginTop:"0.32rem",
-        gap:"0.18rem", position:"relative", zIndex:2, padding:"0.28rem 0.34rem",
+        gap:isCompact ? "0.08rem" : "0.18rem", position:"relative", zIndex:2, padding:isCompact ? "0.24rem 0.22rem" : "0.28rem 0.34rem",
         background:panelSurface, borderRadius:"13px",
         border:`1px solid ${panelBorder}`}}>
         {TIERS.map((t, i) => {
@@ -605,7 +616,7 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
                 transition:"border-color 0.4s",
               }} />
               <span style={{
-                fontSize:"0.5rem", fontFamily:"monospace", textTransform:"uppercase",
+                fontSize:isCompact ? "0.42rem" : "0.5rem", fontFamily:"monospace", textTransform:"uppercase",
                 color: active ? t.color : panelFaint,
                 letterSpacing:"0.04em", textAlign:"center", fontWeight: active ? 700 : 400,
                 transition:"color 0.4s",
@@ -619,8 +630,8 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
       {externalScore === null && (
         <div style={{ marginTop:"0.42rem", position:"relative", zIndex:2 }}>
           <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"0.24rem" }}>
-            <span style={{ fontSize:"0.64rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.1em" }}>CALM</span>
-            <span style={{ fontSize:"0.64rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.1em" }}>CRITICAL</span>
+            <span style={{ fontSize:isCompact ? "0.56rem" : "0.64rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.1em" }}>CALM</span>
+            <span style={{ fontSize:isCompact ? "0.56rem" : "0.64rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.1em" }}>CRITICAL</span>
           </div>
           <input type="range" min="0" max="100" value={stressLevel}
             onChange={e => setStressLevel(Number(e.target.value))}
@@ -637,7 +648,7 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
 
       {externalScore !== null && (
         <motion.p initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.9 }}
-          style={{ textAlign:"center", fontSize:"0.62rem", fontFamily:"monospace",
+          style={{ textAlign:"center", fontSize:isCompact ? "0.54rem" : "0.62rem", fontFamily:"monospace",
             color:panelMuted, marginTop:"0.7rem", letterSpacing:"0.1em",
             position:"relative", zIndex:2 }}>
           ↑ Visualizer updated from your assessment · scroll down for your personalized solution

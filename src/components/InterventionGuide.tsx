@@ -740,6 +740,7 @@ interface InterventionGuideProps {
 export default function InterventionGuide({ score, onClose, onRetake }: InterventionGuideProps) {
   const tier = getTier(score);
   const [selected, setSelected] = useState<Method | null>(null);
+  const [viewportWidth, setViewportWidth] = useState(1024);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -752,20 +753,30 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
     };
   }, []);
 
+  useEffect(() => {
+    const updateViewport = () => setViewportWidth(window.innerWidth);
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
+
+  const isMobile = viewportWidth < 640;
+  const isTablet = viewportWidth < 900;
+
   return (
     <motion.div id="intervention-guide-modal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", background: "rgba(180,215,235,0.62)" }}>
+      style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: isMobile ? "0.65rem" : "1rem", background: "rgba(180,215,235,0.62)" }}>
       <motion.div initial={{ scale: 0.94, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.94, opacity: 0, y: 20 }}
         transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-        style={{ width: "100%", maxWidth: "700px", background: "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(244,250,255,0.98) 100%)", border: "1px solid rgba(255,255,255,0.62)", borderRadius: "24px", padding: "1.4rem 1.4rem 1.25rem", boxShadow: "0 0 32px rgba(99,179,237,0.18), 0 20px 48px rgba(90,155,212,0.12)", maxHeight: "88vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", WebkitOverflowScrolling: "touch", paddingRight: "0.15rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", marginBottom: "0.8rem" }}>
+        style={{ width: "100%", maxWidth: isTablet ? "100%" : "700px", background: "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(244,250,255,0.98) 100%)", border: "1px solid rgba(255,255,255,0.62)", borderRadius: isMobile ? "20px" : "24px", padding: isMobile ? "1rem 0.95rem 0.95rem" : "1.4rem 1.4rem 1.25rem", boxShadow: "0 0 32px rgba(99,179,237,0.18), 0 20px 48px rgba(90,155,212,0.12)", maxHeight: "88vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", WebkitOverflowScrolling: "touch", paddingRight: isMobile ? "0" : "0.15rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", marginBottom: "0.8rem", flexWrap: isMobile ? "wrap" : "nowrap" }}>
           <div>
             {selected && <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#78909c", fontSize: "0.9rem", fontWeight: 600, padding: 0, marginBottom: "0.45rem" }}>Back to methods</button>}
             <p style={{ fontSize: "0.75rem", fontWeight: 700, color: CALM_ACCENT_TEXT, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 0.3rem" }}>
               Score {score}/100 - {tier.label} - Range {tier.range}
             </p>
-            <h2 style={{ color: "#2c3e50", fontSize: "1.55rem", fontWeight: 800, margin: 0 }}>
+            <h2 style={{ color: "#2c3e50", fontSize: isMobile ? "1.3rem" : "1.55rem", fontWeight: 800, margin: 0, lineHeight: 1.2 }}>
               {selected ? `${METHODS.find((method) => method.id === selected)?.label} Guide` : "Choose Your Solution"}
             </h2>
           </div>
@@ -784,7 +795,7 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
 
         {!selected ? (
             <div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.9rem", marginBottom: "1.2rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.9rem", marginBottom: "1.2rem" }}>
                 {METHODS.map((method) => (
                   <button key={method.id} id={`method-${method.id}-btn`} onClick={() => setSelected(method.id)}
                     style={{ background: "rgba(255,255,255,0.74)", border: `1px solid ${CALM_BORDER}`, borderRadius: "18px", padding: "1.15rem", cursor: "pointer", textAlign: "left", display: "flex", flexDirection: "column", gap: "0.55rem", boxShadow: "0 8px 24px rgba(99,179,237,0.05)" }}>
@@ -805,7 +816,7 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
                 <p style={{ margin: 0, color: "#7f1d1d", lineHeight: 1.7 }}>{tier.support.text}</p>
               </div>}
 
-              <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap", flexDirection: isMobile ? "column" : "row" }}>
                 <button id="intervention-retake-btn" onClick={onRetake} style={{ background: "rgba(255,255,255,0.5)", border: "1px solid rgba(90,155,212,0.24)", borderRadius: "999px", color: "#546e7a", padding: "0.7rem 1.5rem", cursor: "pointer", fontWeight: 600 }}>Retake Survey</button>
                 <button id="intervention-done-btn" onClick={onClose}
                   style={{ background: `linear-gradient(135deg, ${CALM_ACCENT}, ${CALM_ACCENT_DEEP})`, border: "none", borderRadius: "999px", color: "#fff", padding: "0.7rem 1.6rem", cursor: "pointer", fontWeight: 700, boxShadow: "0 8px 24px rgba(99,179,237,0.24)" }}>Done</button>

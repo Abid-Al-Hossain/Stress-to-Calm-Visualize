@@ -101,9 +101,9 @@ export default function Home() {
               Understanding how &quot;Home Tension&quot; affects a child&apos;s mental state
               through symbolic, non-graphic visualization.
             </motion.p>
-            <motion.div style={{ marginTop: "2rem" }} variants={itemVariants}>
+            <motion.div className="hero-actions" variants={itemVariants}>
               {user ? (
-                <div className="inline-block px-6 py-3 bg-white/50 backdrop-blur-md rounded-full border border-white/60 shadow-sm text-gray-700 font-medium">
+                <div className="hero-user-pill">
                   Welcome back, {user.name}
                 </div>
               ) : (
@@ -115,7 +115,6 @@ export default function Home() {
                 id="answer-questions-btn"
                 onClick={() => setIsSurveyOpen(true)}
                 className="btn btn-outline"
-                style={{ marginLeft: "1rem" }}
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.97 }}
               >
@@ -126,9 +125,9 @@ export default function Home() {
             <motion.div
               ref={visualizerRef}
               variants={itemVariants}
-              className="mt-12 w-full flex justify-center"
+              className="hero-visualizer"
             >
-              <div style={{ width: "100%" }}>
+              <div className="hero-visualizer-inner">
                 <StressToCalmPreview externalScore={calculatedScore} />
 
                 {/* Calming guide button - shown after survey is complete */}
@@ -181,7 +180,7 @@ export default function Home() {
             <h2>Introduction</h2>
             <p className="mt-2" style={{ maxWidth: "800px", lineHeight: "1.8" }}>
               Children who are exposed to domestic violence may experience fear,
-              anxiety, hypervigilance, and difficulty concentrating—effects that
+              anxiety, hypervigilance, and difficulty concentrating - effects that
               are often invisible and hard to explain.
             </p>
             <p className="mt-4">
@@ -222,7 +221,7 @@ export default function Home() {
             variants={containerVariants}
           >
             <TiltCard className="feature-card">
-              <div className="mb-4 text-4xl text-blue-500">
+              <div className="feature-icon" style={{ color: "#3b82f6" }}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -236,7 +235,7 @@ export default function Home() {
               </p>
             </TiltCard>
             <TiltCard className="feature-card">
-              <div className="mb-4 text-4xl text-teal-500">
+              <div className="feature-icon" style={{ color: "#14b8a6" }}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 9.75V10.5" />
                 </svg>
@@ -249,7 +248,7 @@ export default function Home() {
               </p>
             </TiltCard>
             <TiltCard className="feature-card">
-              <div className="mb-4 text-4xl text-pink-500">
+              <div className="feature-icon" style={{ color: "#ec4899" }}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                 </svg>
@@ -272,7 +271,7 @@ export default function Home() {
           transition={{ duration: 0.6 }}
         >
           <div className="card text-center">
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div className="cta-card">
               <h2>Ready to Explore?</h2>
               <p
                 className="text-muted"

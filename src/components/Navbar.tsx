@@ -10,37 +10,35 @@ export default function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [mounted, setMounted] = useState(false);
-
   const [isPaused, setIsPaused] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  // Check auth state on mount and when interactions happen
-  // In a real app, use a Context/Provider pattern or SWR/React Query
   useEffect(() => {
     setMounted(true);
-    const currentUser = AuthService.getCurrentUser();
-    setUser(currentUser);
+    setUser(AuthService.getCurrentUser());
 
-    // Check animation preference
     const pausedPref = localStorage.getItem("animation-paused") === "true";
     setIsPaused(pausedPref);
     if (pausedPref) {
       document.body.classList.add("animation-paused");
     }
 
-    // Listen for storage events (e.g. login in another tab, or simple update from same tab if we dispatch event)
     const handleStorageChange = () => {
       setUser(AuthService.getCurrentUser());
     };
 
     window.addEventListener("storage", handleStorageChange);
-    // Custom event for same-tab updates
     window.addEventListener("auth-change", handleStorageChange);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("auth-change", handleStorageChange);
     };
-  }, [pathname]); // Re-check on navigation
+  }, [pathname]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname, user]);
 
   const toggleAnimation = () => {
     const newState = !isPaused;
@@ -61,12 +59,13 @@ export default function Navbar() {
     router.refresh();
   };
 
-  if (!mounted)
+  if (!mounted) {
     return (
       <nav className="navbar">
         <div className="container nav-content">Loading...</div>
       </nav>
     );
+  }
 
   return (
     <nav className="navbar">
@@ -75,7 +74,17 @@ export default function Navbar() {
           Stress-to-Calm <span>Visualizer</span>
         </Link>
 
-        <div className="nav-links">
+        <button
+          type="button"
+          className="nav-toggle"
+          onClick={() => setMenuOpen((open) => !open)}
+          aria-expanded={menuOpen}
+          aria-controls="site-nav-links"
+        >
+          {menuOpen ? "Close" : "Menu"}
+        </button>
+
+        <div id="site-nav-links" className={`nav-links ${menuOpen ? "is-open" : ""}`}>
           <button
             onClick={toggleAnimation}
             className="nav-link"
@@ -86,16 +95,19 @@ export default function Navbar() {
               fontSize: "0.9rem",
               display: "flex",
               alignItems: "center",
+              justifyContent: "center",
               gap: "0.5rem",
               minWidth: "85px",
             }}
           >
-            {isPaused ? <span>▶ Resume</span> : <span>⏸ Pause</span>}
+            {isPaused ? <span>Resume</span> : <span>Pause</span>}
           </button>
 
           {user ? (
             <>
-              <span className="text-muted">Welcome, {user.name}</span>
+              <span className="text-muted" style={{ textAlign: "center" }}>
+                Welcome, {user.name}
+              </span>
               <button
                 onClick={handleLogout}
                 className="btn btn-outline"
