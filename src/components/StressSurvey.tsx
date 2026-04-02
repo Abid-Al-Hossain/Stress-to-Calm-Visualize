@@ -36,6 +36,15 @@ interface Section {
   questions: number[]; // question IDs in this section
 }
 
+interface SurveyPart {
+  id: string;
+  title: string;
+  subtitle: string;
+  badge: string;
+  color: string;
+  questionIds: number[];
+}
+
 const SECTIONS: Section[] = [
   {
     id: "emotional",
@@ -68,6 +77,25 @@ const SECTIONS: Section[] = [
     emoji: "🌱",
     color: "#4ade80",
     questions: [7, 8, 9, 10],
+  },
+];
+
+const SURVEY_PARTS: SurveyPart[] = [
+  {
+    id: "assessment",
+    title: "Stress Level Assessment",
+    subtitle: "These first questions determine your stress score.",
+    badge: "Scored",
+    color: "#5a9bd4",
+    questionIds: [1, 2, 3, 4, 5],
+  },
+  {
+    id: "preferences",
+    title: "Recovery & Support Preferences",
+    subtitle: "These questions do not affect your score. They describe calming preferences and recovery style.",
+    badge: "Not scored",
+    color: "#76c7b7",
+    questionIds: [6, 7, 8, 9, 10],
   },
 ];
 
@@ -227,6 +255,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
   const total = QUESTIONS.length;
   const progress = ((currentIndex + 1) / total) * 100;
   const isLast = currentIndex === total - 1;
+  const isLastScoredQuestion = question.id === 5;
   const selectedIndex = useMemo(() => {
     const answer = answers[question.id];
     return answer ? answer.optionIndex : null;
@@ -237,6 +266,11 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
   const sectionIndex = SECTIONS.indexOf(currentSection);
   const stepInSection = currentSection.questions.indexOf(question.id) + 1;
   const stepsInSection = currentSection.questions.length;
+  const currentPart = SURVEY_PARTS.find((part) => part.questionIds.includes(question.id)) ?? SURVEY_PARTS[0];
+  const currentPartIndex = SURVEY_PARTS.indexOf(currentPart);
+  const stepInPart = currentPart.questionIds.indexOf(question.id) + 1;
+  const stepsInPart = currentPart.questionIds.length;
+  const isFirstQuestionInPart = stepInPart === 1;
 
   const handleSelect = (score: number, optionIndex: number) => {
     setAnswers((prev) => ({ ...prev, [question.id]: { score, optionIndex } }));
@@ -333,8 +367,11 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
         {/* Header */}
         <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.85rem", marginBottom: "0.75rem", padding: "0.8rem 0.9rem", borderRadius: "18px", background: "rgba(255,255,255,0.72)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 10px 30px rgba(90,155,212,0.08)" }}>
           <div style={{ flex: 1 }}>
-            <p style={{ margin: "0 0 0.35rem", fontSize: "0.72rem", fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: currentSection.color }}>
-              Stress Assessment
+            <p style={{ margin: "0 0 0.35rem", fontSize: "0.78rem", fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: currentPart.color }}>
+              {currentPart.title}
+            </p>
+            <p style={{ margin: "0 0 0.55rem", color: "#78909c", fontSize: "0.9rem", lineHeight: 1.6, maxWidth: "34rem" }}>
+              {currentPart.subtitle}
             </p>
             {/* Section badge */}
             <motion.div
@@ -357,18 +394,19 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
                 {currentSection.label}
               </span>
               <span style={{ fontSize: "0.68rem", color: currentSection.color, opacity: 0.7 }}>
-                · {stepInSection}/{stepsInSection}
+                - {stepInSection}/{stepsInSection}
               </span>
             </motion.div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
               <p style={{ fontSize: "0.82rem", color: "#78909c" }}>
-                Question {currentIndex + 1} of {total}
+                {currentPart.id === "assessment" ? "Assessment" : "Preferences"} Question {stepInPart} of {stepsInPart}
               </p>
-              {question.scored && (
-                <span style={{ fontSize: "0.68rem", fontWeight: 600, color: "#5a9bd4", background: "rgba(90,155,212,0.1)", padding: "0.15rem 0.55rem", borderRadius: "99px", border: "1px solid rgba(90,155,212,0.2)" }}>
-                  Scored
-                </span>
-              )}
+              <span style={{ fontSize: "0.8rem", fontWeight: 800, color: currentPart.color, background: `${currentPart.color}14`, padding: "0.3rem 0.75rem", borderRadius: "99px", border: `1px solid ${currentPart.color}30`, letterSpacing: "0.04em" }}>
+                {currentPart.badge}
+              </span>
+              <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "#90a4ae", background: "rgba(180,215,235,0.16)", padding: "0.24rem 0.65rem", borderRadius: "99px", border: "1px solid rgba(180,215,235,0.26)" }}>
+                Part {currentPartIndex + 1} of {SURVEY_PARTS.length}
+              </span>
             </div>
           </div>
           <button
@@ -387,11 +425,39 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
               transition: "background 0.2s, color 0.2s",
             }}
           >
-            ✕
+            x
           </button>
         </div>
 
         {/* Section pills — shows all 4 sections as a journey map */}
+        <div style={{ display: "flex", gap: "0.45rem", marginBottom: "0.75rem", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
+          {SURVEY_PARTS.map((part, index) => {
+            const isActive = index === currentPartIndex;
+            const isDone = index < currentPartIndex;
+            return (
+              <div
+                key={part.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.38rem",
+                  padding: "0.28rem 0.72rem",
+                  borderRadius: "99px",
+                  background: isActive ? `${part.color}18` : isDone ? "rgba(90,155,212,0.06)" : "rgba(180,215,235,0.1)",
+                  border: `1px solid ${isActive ? part.color + "55" : isDone ? "rgba(90,155,212,0.2)" : "rgba(180,215,235,0.3)"}`,
+                }}
+              >
+                <span style={{ fontSize: "0.68rem", fontWeight: 700, color: isActive ? part.color : isDone ? "#78909c" : "#90a4ae", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  {isDone ? "Done" : `Part ${index + 1}`}
+                </span>
+                <span style={{ fontSize: "0.72rem", fontWeight: isActive ? 700 : 500, color: isActive ? part.color : isDone ? "#607d8b" : "#90a4ae" }}>
+                  {part.title}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
         <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.8rem", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
           {SECTIONS.map((s, i) => {
             const isActive = i === sectionIndex;
@@ -410,7 +476,17 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
                   transition: "all 0.3s",
                 }}
               >
-                <span style={{ fontSize: "0.75rem" }}>{isDone ? "✓" : s.emoji}</span>
+                <span
+                  style={{
+                    fontSize: "0.66rem",
+                    fontWeight: 700,
+                    color: isDone ? "#78909c" : "inherit",
+                    textTransform: isDone ? "uppercase" : "none",
+                    letterSpacing: isDone ? "0.06em" : "normal",
+                  }}
+                >
+                  {isDone ? "Done" : s.emoji}
+                </span>
                 <span style={{
                   fontSize: "0.64rem",
                   fontWeight: isActive ? 700 : 500,
@@ -442,6 +518,64 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
             }}
           />
         </div>
+
+        {currentPart.id === "preferences" && (
+          <div
+            style={{
+              position: "relative",
+              zIndex: 1,
+              marginBottom: "0.9rem",
+              padding: "0.95rem 1rem",
+              borderRadius: "18px",
+              background: "linear-gradient(135deg, rgba(118,199,183,0.16), rgba(90,155,212,0.08))",
+              border: "1px solid rgba(118,199,183,0.26)",
+              boxShadow: "0 10px 24px rgba(118,199,183,0.08)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.8rem", flexWrap: "wrap" }}>
+              <div>
+                <p style={{ margin: "0 0 0.35rem", fontSize: "0.76rem", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#4f9f95" }}>
+                  Preference Section
+                </p>
+                <h3 style={{ margin: "0 0 0.25rem", fontSize: "1rem", lineHeight: 1.35, color: "#284b63", fontFamily: "var(--font-heading)" }}>
+                  Your stress score is already set.
+                </h3>
+                <p style={{ margin: 0, fontSize: "0.88rem", lineHeight: 1.6, color: "#607d8b", maxWidth: "33rem" }}>
+                  These next questions do not change your score. They help describe how calm feels to you and what kind of support feels most useful.
+                </p>
+              </div>
+              <div
+                style={{
+                  padding: "0.42rem 0.9rem",
+                  borderRadius: "999px",
+                  background: "rgba(255,255,255,0.82)",
+                  border: "1px solid rgba(118,199,183,0.32)",
+                  color: "#4f9f95",
+                  fontSize: "0.82rem",
+                  fontWeight: 800,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Not scored
+              </div>
+            </div>
+            {isFirstQuestionInPart && (
+              <div
+                style={{
+                  marginTop: "0.7rem",
+                  paddingTop: "0.7rem",
+                  borderTop: "1px solid rgba(118,199,183,0.2)",
+                  fontSize: "0.84rem",
+                  fontWeight: 700,
+                  color: "#4f9f95",
+                }}
+              >
+                You are now in Part 2 of 2.
+              </div>
+            )}
+          </div>
+        )}
 
         <div style={{ position: "relative", zIndex: 1, padding: "0.95rem 1rem 1rem", borderRadius: "20px", background: "linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(248,251,255,0.96) 100%)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 12px 28px rgba(90,155,212,0.06)" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", padding: "0.32rem 0.7rem", borderRadius: "999px", background: `${currentSection.color}14`, color: currentSection.color, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.7rem" }}>
@@ -573,7 +707,7 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
               fontFamily: "var(--font-heading)",
             }}
           >
-            {isLast ? "See My Results" : "Next"}
+            {isLast ? "See My Results" : isLastScoredQuestion ? "Continue to Preferences" : "Next"}
           </button>
         </div>
       </motion.div>

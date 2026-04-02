@@ -119,7 +119,7 @@ export default function Home() {
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.97 }}
               >
-                {calculatedScore !== null ? "Retake Assessment" : "Answer Questions"}
+                {calculatedScore !== null ? "Retake Stress Assessment" : "Check Your Stress Level"}
               </motion.button>
             </motion.div>
 
@@ -131,7 +131,7 @@ export default function Home() {
               <div style={{ width: "100%" }}>
                 <StressToCalmPreview externalScore={calculatedScore} />
 
-                {/* Get Solution button — shown after survey is complete */}
+                {/* Calming guide button - shown after survey is complete */}
                 <AnimatePresence>
                   {calculatedScore !== null && (
                     <motion.div
@@ -159,7 +159,7 @@ export default function Home() {
                           boxShadow: "0 8px 30px rgba(99,179,237,0.35)",
                         }}
                       >
-                        ✦ Get Solution
+                        Open Calming Guide
                       </motion.button>
                     </motion.div>
                   )}
@@ -243,8 +243,9 @@ export default function Home() {
               </div>
               <h3>Interactive Assessment</h3>
               <p>
-                Users answer a 10-question survey and the system calculates a personal
-                stress score, updating the visualizer automatically with their mental state.
+                Users complete 5 scored assessment questions to calculate a stress
+                level, followed by 5 non-scored preference questions about recovery
+                and calming support.
               </p>
             </TiltCard>
             <TiltCard className="feature-card">
@@ -255,8 +256,8 @@ export default function Home() {
               </div>
               <h3>Coping Mechanisms</h3>
               <p>
-                Demonstrate relief through guided interventions — breathing exercises,
-                grounding techniques, and personalized advice — that match the user&apos;s
+                Demonstrate relief through guided interventions - breathing exercises,
+                grounding techniques, and personalized advice - that match the user&apos;s
                 assessed stress tier.
               </p>
             </TiltCard>
@@ -277,7 +278,7 @@ export default function Home() {
                 className="text-muted"
                 style={{ marginTop: "1rem", marginBottom: "2rem" }}
               >
-                Take the assessment to see your personal stress visualization and receive guided coping strategies.
+                Take the stress assessment to see your level, view your personal stress visualization, and open calming guidance matched to your result.
               </p>
               <motion.button
                 id="cta-answer-btn"
@@ -286,7 +287,7 @@ export default function Home() {
                 whileTap={{ scale: 0.97 }}
                 className="btn btn-primary"
               >
-                {calculatedScore !== null ? "↺ Retake Assessment" : "Start Assessment"}
+                {calculatedScore !== null ? "Retake Stress Assessment" : "Check Your Stress Level"}
               </motion.button>
             </div>
           </div>
