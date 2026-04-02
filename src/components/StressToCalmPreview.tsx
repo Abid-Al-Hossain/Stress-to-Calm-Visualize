@@ -6,11 +6,11 @@ import { interpolate } from "flubber";
 
 // ── Tier config ────────────────────────────────────────────────────────────────
 const TIERS = [
-  { min: 0,  max: 39,  label: "Low Stress",      shortLabel: "Low",      color: "#38bdf8", glow: "rgba(56,189,248,0.55)",  skinHue: "#fef3c7", bg: "#eef8ff" },
-  { min: 40, max: 59,  label: "Mild Stress",      shortLabel: "Mild",     color: "#4ade80", glow: "rgba(74,222,128,0.55)",  skinHue: "#fde8a0", bg: "#eefcf4" },
-  { min: 60, max: 74,  label: "Moderate Stress",  shortLabel: "Moderate", color: "#facc15", glow: "rgba(250,204,21,0.55)",  skinHue: "#fce89a", bg: "#fffbea" },
-  { min: 75, max: 89,  label: "High Stress",      shortLabel: "High",     color: "#fb923c", glow: "rgba(251,146,60,0.55)",  skinHue: "#fdd0a0", bg: "#fff4ea" },
-  { min: 90, max: 100, label: "Severe Stress",    shortLabel: "Severe",   color: "#f87171", glow: "rgba(248,113,113,0.55)", skinHue: "#ffc0b0", bg: "#fff1f2" },
+  { min: 0,  max: 19,  label: "Minimal Stress",   shortLabel: "Minimal",  color: "#38bdf8", glow: "rgba(56,189,248,0.55)",  skinHue: "#fef3c7", bg: "#eef8ff" },
+  { min: 20, max: 39,  label: "Mild Stress",      shortLabel: "Mild",     color: "#4ade80", glow: "rgba(74,222,128,0.55)",  skinHue: "#fde8a0", bg: "#eefcf4" },
+  { min: 40, max: 59,  label: "Moderate Stress",  shortLabel: "Moderate", color: "#facc15", glow: "rgba(250,204,21,0.55)",  skinHue: "#fce89a", bg: "#fffbea" },
+  { min: 60, max: 79,  label: "High Stress",      shortLabel: "High",     color: "#fb923c", glow: "rgba(251,146,60,0.55)",  skinHue: "#fdd0a0", bg: "#fff4ea" },
+  { min: 80, max: 100, label: "Severe Stress",    shortLabel: "Severe",   color: "#f87171", glow: "rgba(248,113,113,0.55)", skinHue: "#ffc0b0", bg: "#fff1f2" },
 ];
 function getTier(s: number) { return TIERS.find(t => s >= t.min && s <= t.max) ?? TIERS[0]; }
 

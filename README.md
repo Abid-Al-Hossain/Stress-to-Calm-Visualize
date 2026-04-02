@@ -234,11 +234,11 @@ Primary implementation:
 
 The project uses `stress_intervention_guide.txt` as the source of truth for stress ranges:
 
-- `0-39` Low Stress
-- `40-59` Mild Stress
-- `60-74` Moderate Stress
-- `75-89` High Stress
-- `90-100` Severe Stress
+- `0-19` Minimal Stress
+- `20-39` Mild Stress
+- `40-59` Moderate Stress
+- `60-79` High Stress
+- `80-100` Severe Stress
 
 Those ranges are reflected in the runtime UI:
 

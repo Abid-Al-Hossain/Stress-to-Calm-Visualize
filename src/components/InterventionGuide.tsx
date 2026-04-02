@@ -29,7 +29,7 @@ interface Tier {
 }
 
 const TIERS: Tier[] = [
-  { range: "0-39", label: "Low Stress", color: "#38bdf8", dimColor: "#0ea5e9", glow: "rgba(56,189,248,0.32)",
+  { range: "0-19", label: "Minimal Stress", color: "#38bdf8", dimColor: "#0ea5e9", glow: "rgba(56,189,248,0.32)",
     breathing: { name: "Slow natural breathing", summary: "Inhale 4 seconds, exhale 4 seconds.", inhale: 4, hold: 0, exhale: 4 },
     sound: { name: "Light nature sounds", summary: "Birds, wind, and soft water.", example: "Morning forest ambience.", mode: "nature", tags: ["Birds", "Wind", "Soft water"] },
     visual: {
@@ -53,7 +53,7 @@ const TIERS: Tier[] = [
       groundingIntro: "Use your senses to return attention to the present moment.",
       groundingSteps: ["Name 5 things you can see.", "Notice 4 things you can feel.", "Listen for 3 things you can hear.", "Find 2 things you can smell.", "Notice 1 thing you can taste, or imagine a familiar taste."],
     } },
-  { range: "40-59", label: "Mild Stress", color: "#4ade80", dimColor: "#22c55e", glow: "rgba(74,222,128,0.32)",
+  { range: "20-39", label: "Mild Stress", color: "#4ade80", dimColor: "#22c55e", glow: "rgba(74,222,128,0.32)",
     breathing: { name: "Controlled breathing", summary: "Inhale 4 seconds, exhale 5 seconds.", inhale: 4, hold: 0, exhale: 5 },
     sound: { name: "Gentle rhythmic sounds", summary: "Ocean waves, light rain, and soft instrumental tones.", example: "Ocean waves, light rain, soft instrumental.", mode: "ocean", tags: ["Ocean waves", "Light rain", "Soft instrumental"] },
     visual: {
@@ -77,7 +77,7 @@ const TIERS: Tier[] = [
       groundingIntro: "Use your senses one by one so the environment becomes clearer than the stress signal.",
       groundingSteps: ["Name 5 things you can see.", "Notice 4 things you can feel.", "Listen for 3 things you can hear.", "Find 2 things you can smell.", "Notice 1 thing you can taste, or imagine a familiar taste."],
     } },
-  { range: "60-74", label: "Moderate Stress", color: "#facc15", dimColor: "#eab308", glow: "rgba(250,204,21,0.32)",
+  { range: "40-59", label: "Moderate Stress", color: "#facc15", dimColor: "#eab308", glow: "rgba(250,204,21,0.32)",
     breathing: { name: "Guided breathing", summary: "Inhale 4 seconds, hold 2 seconds, exhale 6 seconds.", inhale: 4, hold: 2, exhale: 6 },
     sound: { name: "Guided breathing audio and low ambient tones", summary: "Slow ambient tones with breath-paced cue pulses.", example: "Guided breathing audio, low ambient tones.", mode: "guided", tags: ["Guided cue", "Low ambient tones", "Breath pulse"] },
     visual: {
@@ -101,7 +101,7 @@ const TIERS: Tier[] = [
       groundingIntro: "Move through the senses slowly so your attention returns to the room, not the alarm feeling.",
       groundingSteps: ["Name 5 things you can see.", "Notice 4 things you can feel.", "Listen for 3 things you can hear.", "Find 2 things you can smell.", "Notice 1 thing you can taste, or imagine a familiar taste."],
     } },
-  { range: "75-89", label: "High Stress", color: "#fb923c", dimColor: "#f97316", glow: "rgba(251,146,60,0.34)",
+  { range: "60-79", label: "High Stress", color: "#fb923c", dimColor: "#f97316", glow: "rgba(251,146,60,0.34)",
     breathing: { name: "Slow deep breathing", summary: "Inhale 4 seconds, exhale 7 seconds.", inhale: 4, hold: 0, exhale: 7 },
     sound: { name: "Deep grounding sounds", summary: "Low bass hum, heartbeat, and brown noise.", example: "Low bass hum, heartbeat, brown noise.", mode: "grounding", tags: ["Bass hum", "Heartbeat", "Brown noise"] },
     visual: {
@@ -125,7 +125,7 @@ const TIERS: Tier[] = [
       groundingIntro: "When the body is very activated, shorten the grounding task and stay with the easiest sensory cues.",
       groundingSteps: ["Name 3 things you can see.", "Name 3 things you can hear.", "Move or touch 3 parts of your body, or 3 nearby surfaces."],
     } },
-  { range: "90-100", label: "Severe Stress", color: "#f87171", dimColor: "#ef4444", glow: "rgba(248,113,113,0.36)",
+  { range: "80-100", label: "Severe Stress", color: "#f87171", dimColor: "#ef4444", glow: "rgba(248,113,113,0.36)",
     breathing: { name: "Very slow breathing", summary: "Inhale 4 seconds, exhale 8 seconds.", inhale: 4, hold: 0, exhale: 8 },
     sound: { name: "Very simple repetitive sounds", summary: "A slow heartbeat with very simple repeating cues.", example: "Slow heartbeat, soft voice guidance.", mode: "heartbeat", tags: ["Slow heartbeat", "Simple pulse", "Guidance cue"] },
     visual: {
@@ -188,10 +188,10 @@ const CALM_BORDER = "rgba(99,179,237,0.18)";
 const CALM_PANEL = "linear-gradient(180deg, rgba(255,255,255,0.84) 0%, rgba(240,249,255,0.96) 100%)";
 
 function getTier(score: number) {
-  if (score <= 39) return TIERS[0];
-  if (score <= 59) return TIERS[1];
-  if (score <= 74) return TIERS[2];
-  if (score <= 89) return TIERS[3];
+  if (score <= 19) return TIERS[0];
+  if (score <= 39) return TIERS[1];
+  if (score <= 59) return TIERS[2];
+  if (score <= 79) return TIERS[3];
   return TIERS[4];
 }
 
