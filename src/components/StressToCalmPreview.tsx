@@ -336,7 +336,7 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
           initial={{ opacity:0, scale:0.8 }} animate={{ opacity:1, scale:1 }}
           style={{ display:"flex", alignItems:"center", gap:"0.42rem", padding:isCompact ? "0.25rem 0.58rem" : "0.3rem 0.72rem",
             borderRadius:"99px", background:panelSurfaceStrong, border:`1px solid ${tier.color}44`, boxShadow:"0 8px 24px rgba(90,155,212,0.08)" }}>
-          <span style={{ fontSize:isCompact ? "0.9rem" : "1rem" }}>{stressLevel <= 39 ? "😌" : stressLevel <= 59 ? "🙂" : stressLevel <= 74 ? "😐" : stressLevel <= 89 ? "😟" : "😰"}</span>
+          <span style={{ fontSize:isCompact ? "0.9rem" : "1rem" }}>{stressLevel <= 19 ? "🙂" : stressLevel <= 39 ? "😌" : stressLevel <= 59 ? "😐" : stressLevel <= 79 ? "😟" : "😰"}</span>
           <span style={{ fontSize:isCompact ? "0.66rem" : "0.76rem", fontWeight:700, color:tier.color, fontFamily:"monospace", textTransform:"uppercase", letterSpacing:"0.08em" }}>
             {tier.label}
           </span>
