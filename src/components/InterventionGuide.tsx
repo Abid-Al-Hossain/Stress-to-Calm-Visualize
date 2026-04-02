@@ -786,7 +786,7 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
 
         {!selected && <div style={{ background: "rgba(227,242,253,0.58)", borderRadius: "16px", border: `1px solid ${CALM_BORDER}`, padding: "1rem 1.1rem", marginBottom: "1.2rem" }}>
           <p style={{ margin: 0, color: "#455a64", lineHeight: 1.7 }}>
-            This solution flow follows stress_intervention_guide.txt. Each method below matches your current stress range for breathing, sound, visual focus, and advice prompts.
+            Each method below matches your current stress range and offers breathing, sound, visual focus, and calming guidance designed for this level.
           </p>
         </div>}
 
@@ -804,7 +804,7 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
               </div>
 
               <div style={{ background: CALM_PANEL, borderRadius: "16px", padding: "1rem 1.1rem", border: `1px solid ${CALM_BORDER}`, marginBottom: "1.2rem" }}>
-                <p style={{ margin: "0 0 0.5rem", color: CALM_ACCENT_TEXT, fontSize: "0.76rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>Right now</p>
+                <p style={{ margin: "0 0 0.5rem", color: CALM_ACCENT_TEXT, fontSize: "0.76rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>Helpful reminders</p>
                 {tier.advice.lines.map((line) => <p key={line} style={{ margin: "0 0 0.4rem", color: "#37474f", lineHeight: 1.65 }}>&quot;{line}&quot;</p>)}
               </div>
 

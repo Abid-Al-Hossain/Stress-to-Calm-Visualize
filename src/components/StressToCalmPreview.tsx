@@ -329,7 +329,7 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
             Stress-to-Calm · Mental State
           </p>
           <p style={{ fontSize:isCompact ? "0.66rem" : "0.78rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.05em" }}>
-            {externalScore !== null ? "Assessment Result" : "Demo · drag the slider"}
+            {externalScore !== null ? "Assessment Result" : "Move the slider to explore each stress state"}
           </p>
         </div>
         <motion.div key={tier.label}
@@ -573,11 +573,11 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
         overflow:"hidden", position:"relative", zIndex:2 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"0.18rem" }}>
           <span style={{ fontSize:isCompact ? "0.56rem" : "0.64rem", fontFamily:"monospace", color:panelMuted, letterSpacing:"0.12em", textTransform:"uppercase" }}>
-            EEG · Stress Oscillation
+            Stress Pattern
           </span>
           <motion.span animate={{ opacity:[1, 0.3, 1] }} transition={{ duration:1, repeat:Infinity }}
             style={{ fontSize:isCompact ? "0.56rem" : "0.64rem", fontFamily:"monospace", color:tier.color }}>
-            ● LIVE
+            Active
           </motion.span>
         </div>
         <svg width="100%" height="32" viewBox="0 0 540 46" preserveAspectRatio="none">
@@ -651,7 +651,7 @@ export default function StressToCalmPreview({ externalScore = null }: Props) {
           style={{ textAlign:"center", fontSize:isCompact ? "0.54rem" : "0.62rem", fontFamily:"monospace",
             color:panelMuted, marginTop:"0.7rem", letterSpacing:"0.1em",
             position:"relative", zIndex:2 }}>
-          ↑ Visualizer updated from your assessment · scroll down for your personalized solution
+          Your visualizer has been updated from your assessment. Scroll down for calming guidance matched to your result.
         </motion.p>
       )}
     </div>
