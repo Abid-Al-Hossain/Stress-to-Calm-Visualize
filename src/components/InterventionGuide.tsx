@@ -689,9 +689,6 @@ function AdviceGuide({ tier }: { tier: Tier }) {
         <div style={{ display: "grid", gap: "0.55rem" }}>
           {tier.advice.lines.map((line, index) => (
             <div key={line} style={{ padding: "0.8rem 0.95rem", borderRadius: "14px", background: index === 0 ? "rgba(227,242,253,0.78)" : "rgba(255,255,255,0.72)", border: `1px solid ${CALM_BORDER}` }}>
-              <div style={{ color: CALM_ACCENT_TEXT, fontSize: "0.74rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.2rem" }}>
-                Prompt {index + 1}
-              </div>
               <div style={{ color: "#2c3e50", fontSize: "1rem", lineHeight: 1.55, fontWeight: 700 }}>
                 {line}
               </div>
