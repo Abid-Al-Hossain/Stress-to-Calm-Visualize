@@ -330,14 +330,15 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
         transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
         style={{
           width: "100%",
-          maxWidth: "620px",
+          maxWidth: "940px",
+          height: "min(84vh, 760px)",
           // Glass card — same as .card / .auth-card on the site
           background: "rgba(255, 255, 255, 0.96)",
           border: "1px solid rgba(255, 255, 255, 0.55)",
           borderRadius: "24px",
           padding: "1.15rem 1.15rem 0.95rem",
           boxShadow: "0 20px 60px rgba(90, 155, 212, 0.18), 0 4px 16px rgba(30, 41, 59, 0.06)",
-          maxHeight: "86vh",
+          maxHeight: "84vh",
           position: "relative",
           overflow: "hidden",
           display: "flex",
@@ -352,232 +353,256 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
             background: `linear-gradient(180deg, ${currentSection.color}10 0%, rgba(255,255,255,0) 22%)`,
           }}
         />
+        <button
+          id="survey-close-btn"
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: "1rem",
+            right: "1rem",
+            zIndex: 4,
+            background: "rgba(255,255,255,0.9)",
+            border: "1px solid rgba(90,155,212,0.16)",
+            cursor: "pointer",
+            color: "#607d8b",
+            fontSize: "1.1rem",
+            lineHeight: 1,
+            width: "38px",
+            height: "38px",
+            borderRadius: "50%",
+            transition: "background 0.2s, color 0.2s",
+            boxShadow: "0 8px 20px rgba(90,155,212,0.08)",
+          }}
+        >
+          x
+        </button>
         <div
           style={{
             position: "relative",
             zIndex: 1,
             flex: 1,
             minHeight: 0,
-            overflowY: "auto",
-            overscrollBehavior: "contain",
-            WebkitOverflowScrolling: "touch",
-            paddingBottom: "0.85rem",
+            overflow: "hidden",
+            paddingBottom: "0.15rem",
           }}
         >
-        {/* Header */}
-        <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.85rem", marginBottom: "0.75rem", padding: "0.8rem 0.9rem", borderRadius: "18px", background: "rgba(255,255,255,0.72)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 10px 30px rgba(90,155,212,0.08)" }}>
-          <div style={{ flex: 1 }}>
-            <p style={{ margin: "0 0 0.35rem", fontSize: "0.78rem", fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: currentPart.color }}>
-              {currentPart.title}
-            </p>
-            <p style={{ margin: "0 0 0.55rem", color: "#78909c", fontSize: "0.9rem", lineHeight: 1.6, maxWidth: "34rem" }}>
-              {currentPart.subtitle}
-            </p>
-            {/* Section badge */}
-            <motion.div
-              key={currentSection.id}
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.4rem",
-                padding: "0.3rem 0.85rem",
-                borderRadius: "99px",
-                background: `${currentSection.color}18`,
-                border: `1.5px solid ${currentSection.color}44`,
-                marginBottom: "0.5rem",
-              }}
-            >
-              <span style={{ fontSize: "0.85rem" }}>{currentSection.emoji}</span>
-              <span style={{ fontSize: "0.72rem", fontWeight: 700, color: currentSection.color, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                {currentSection.label}
-              </span>
-              <span style={{ fontSize: "0.68rem", color: currentSection.color, opacity: 0.7 }}>
-                - {stepInSection}/{stepsInSection}
-              </span>
-            </motion.div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-              <p style={{ fontSize: "0.82rem", color: "#78909c" }}>
-                {currentPart.id === "assessment" ? "Assessment" : "Preferences"} Question {stepInPart} of {stepsInPart}
-              </p>
-              <span style={{ fontSize: "0.8rem", fontWeight: 800, color: currentPart.color, background: `${currentPart.color}14`, padding: "0.3rem 0.75rem", borderRadius: "99px", border: `1px solid ${currentPart.color}30`, letterSpacing: "0.04em" }}>
-                {currentPart.badge}
-              </span>
-              <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "#90a4ae", background: "rgba(180,215,235,0.16)", padding: "0.24rem 0.65rem", borderRadius: "99px", border: "1px solid rgba(180,215,235,0.26)" }}>
-                Part {currentPartIndex + 1} of {SURVEY_PARTS.length}
-              </span>
-            </div>
-          </div>
-          <button
-            id="survey-close-btn"
-            onClick={onClose}
-            style={{
-              background: "rgba(255,255,255,0.72)",
-              border: "1px solid rgba(90,155,212,0.16)",
-              cursor: "pointer",
-              color: "#607d8b",
-              fontSize: "1.1rem",
-              lineHeight: 1,
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              transition: "background 0.2s, color 0.2s",
-            }}
-          >
-            x
-          </button>
-        </div>
-
-        {/* Section pills — shows all 4 sections as a journey map */}
-        <div style={{ display: "flex", gap: "0.45rem", marginBottom: "0.75rem", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
-          {SURVEY_PARTS.map((part, index) => {
-            const isActive = index === currentPartIndex;
-            const isDone = index < currentPartIndex;
-            return (
-              <div
-                key={part.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.38rem",
-                  padding: "0.28rem 0.72rem",
-                  borderRadius: "99px",
-                  background: isActive ? `${part.color}18` : isDone ? "rgba(90,155,212,0.06)" : "rgba(180,215,235,0.1)",
-                  border: `1px solid ${isActive ? part.color + "55" : isDone ? "rgba(90,155,212,0.2)" : "rgba(180,215,235,0.3)"}`,
-                }}
-              >
-                <span style={{ fontSize: "0.68rem", fontWeight: 700, color: isActive ? part.color : isDone ? "#78909c" : "#90a4ae", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                  {isDone ? "Done" : `Part ${index + 1}`}
-                </span>
-                <span style={{ fontSize: "0.72rem", fontWeight: isActive ? 700 : 500, color: isActive ? part.color : isDone ? "#607d8b" : "#90a4ae" }}>
-                  {part.title}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.8rem", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
-          {SECTIONS.map((s, i) => {
-            const isActive = i === sectionIndex;
-            const isDone = i < sectionIndex;
-            return (
-              <div
-                key={s.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.3rem",
-                  padding: "0.22rem 0.58rem",
-                  borderRadius: "99px",
-                  background: isActive ? `${s.color}20` : isDone ? "rgba(90,155,212,0.06)" : "rgba(180,215,235,0.1)",
-                  border: `1px solid ${isActive ? s.color + "66" : isDone ? "rgba(90,155,212,0.2)" : "rgba(180,215,235,0.3)"}`,
-                  transition: "all 0.3s",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "0.66rem",
-                    fontWeight: 700,
-                    color: isDone ? "#78909c" : "inherit",
-                    textTransform: isDone ? "uppercase" : "none",
-                    letterSpacing: isDone ? "0.06em" : "normal",
-                  }}
-                >
-                  {isDone ? "Done" : s.emoji}
-                </span>
-                <span style={{
-                  fontSize: "0.64rem",
-                  fontWeight: isActive ? 700 : 500,
-                  color: isActive ? s.color : isDone ? "#78909c" : "#b0bec5",
-                  whiteSpace: "nowrap",
-                }}>
-                  {s.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Progress Bar — color matches current section */}
-        <div style={{
-          height: "4px",
-          background: "rgba(90, 155, 212, 0.1)",
-          borderRadius: "99px",
-          marginBottom: "1rem",
-          overflow: "hidden",
-        }}>
-          <div
-            style={{
-              height: "100%",
-              width: `${progress}%`,
-              background: `linear-gradient(90deg, #5a9bd4, ${currentSection.color})`,
-              borderRadius: "99px",
-              transition: "width 0.2s ease-out",
-            }}
-          />
-        </div>
-
-        {currentPart.id === "preferences" && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: "1rem",
+            alignItems: "stretch",
+            height: "100%",
+            minHeight: 0,
+          }}
+        >
           <div
             style={{
               position: "relative",
               zIndex: 1,
-              marginBottom: "0.9rem",
-              padding: "0.95rem 1rem",
-              borderRadius: "18px",
-              background: "linear-gradient(135deg, rgba(118,199,183,0.16), rgba(90,155,212,0.08))",
-              border: "1px solid rgba(118,199,183,0.26)",
-              boxShadow: "0 10px 24px rgba(118,199,183,0.08)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.8rem",
+              minHeight: 0,
+              overflowY: "auto",
+              overscrollBehavior: "contain",
+              WebkitOverflowScrolling: "touch",
+              paddingRight: "0.15rem",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.8rem", flexWrap: "wrap" }}>
-              <div>
-                <p style={{ margin: "0 0 0.35rem", fontSize: "0.76rem", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#4f9f95" }}>
-                  Preference Section
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "0.85rem", padding: "0.9rem 3.5rem 0.9rem 1rem", borderRadius: "18px", background: "rgba(255,255,255,0.72)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 10px 30px rgba(90,155,212,0.08)" }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ margin: "0 0 0.35rem", fontSize: "0.78rem", fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: currentPart.color }}>
+                  {currentPart.title}
                 </p>
-                <h3 style={{ margin: "0 0 0.25rem", fontSize: "1rem", lineHeight: 1.35, color: "#284b63", fontFamily: "var(--font-heading)" }}>
-                  Your stress score is already set.
-                </h3>
-                <p style={{ margin: 0, fontSize: "0.88rem", lineHeight: 1.6, color: "#607d8b", maxWidth: "33rem" }}>
-                  These next questions do not change your score. They help describe how calm feels to you and what kind of support feels most useful.
+                <p style={{ margin: "0 0 0.6rem", color: "#78909c", fontSize: "0.9rem", lineHeight: 1.6 }}>
+                  {currentPart.subtitle}
                 </p>
-              </div>
-              <div
-                style={{
-                  padding: "0.42rem 0.9rem",
-                  borderRadius: "999px",
-                  background: "rgba(255,255,255,0.82)",
-                  border: "1px solid rgba(118,199,183,0.32)",
-                  color: "#4f9f95",
-                  fontSize: "0.82rem",
-                  fontWeight: 800,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                }}
-              >
-                Not scored
+                <motion.div
+                  key={currentSection.id}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.4rem",
+                    padding: "0.34rem 0.88rem",
+                    borderRadius: "99px",
+                    background: `${currentSection.color}18`,
+                    border: `1.5px solid ${currentSection.color}44`,
+                    marginBottom: "0.55rem",
+                  }}
+                >
+                  <span style={{ fontSize: "0.85rem" }}>{currentSection.emoji}</span>
+                  <span style={{ fontSize: "0.72rem", fontWeight: 700, color: currentSection.color, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                    {currentSection.label}
+                  </span>
+                  <span style={{ fontSize: "0.68rem", color: currentSection.color, opacity: 0.7 }}>
+                    - {stepInSection}/{stepsInSection}
+                  </span>
+                </motion.div>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <p style={{ fontSize: "0.82rem", color: "#78909c" }}>
+                    {currentPart.id === "assessment" ? "Assessment" : "Preferences"} Question {stepInPart} of {stepsInPart}
+                  </p>
+                  <span style={{ fontSize: "0.8rem", fontWeight: 800, color: currentPart.color, background: `${currentPart.color}14`, padding: "0.3rem 0.75rem", borderRadius: "99px", border: `1px solid ${currentPart.color}30`, letterSpacing: "0.04em" }}>
+                    {currentPart.badge}
+                  </span>
+                  <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "#90a4ae", background: "rgba(180,215,235,0.16)", padding: "0.24rem 0.65rem", borderRadius: "99px", border: "1px solid rgba(180,215,235,0.26)" }}>
+                    Part {currentPartIndex + 1} of {SURVEY_PARTS.length}
+                  </span>
+                </div>
               </div>
             </div>
-            {isFirstQuestionInPart && (
-              <div
-                style={{
-                  marginTop: "0.7rem",
-                  paddingTop: "0.7rem",
-                  borderTop: "1px solid rgba(118,199,183,0.2)",
-                  fontSize: "0.84rem",
-                  fontWeight: 700,
-                  color: "#4f9f95",
-                }}
-              >
-                You are now in Part 2 of 2.
-              </div>
-            )}
-          </div>
-        )}
 
-        <div style={{ position: "relative", zIndex: 1, padding: "0.95rem 1rem 1rem", borderRadius: "20px", background: "linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(248,251,255,0.96) 100%)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 12px 28px rgba(90,155,212,0.06)" }}>
+            <div style={{ padding: "0.85rem 0.9rem", borderRadius: "18px", background: "linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(248,251,255,0.96) 100%)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 12px 28px rgba(90,155,212,0.06)" }}>
+              <div style={{ display: "flex", gap: "0.45rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+                {SURVEY_PARTS.map((part, index) => {
+                  const isActive = index === currentPartIndex;
+                  const isDone = index < currentPartIndex;
+                  return (
+                    <div
+                      key={part.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.38rem",
+                        padding: "0.32rem 0.72rem",
+                        borderRadius: "99px",
+                        background: isActive ? `${part.color}18` : isDone ? "rgba(90,155,212,0.06)" : "rgba(180,215,235,0.1)",
+                        border: `1px solid ${isActive ? part.color + "55" : isDone ? "rgba(90,155,212,0.2)" : "rgba(180,215,235,0.3)"}`,
+                      }}
+                    >
+                      <span style={{ fontSize: "0.68rem", fontWeight: 700, color: isActive ? part.color : isDone ? "#78909c" : "#90a4ae", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                        {isDone ? "Done" : `Part ${index + 1}`}
+                      </span>
+                      <span style={{ fontSize: "0.72rem", fontWeight: isActive ? 700 : 500, color: isActive ? part.color : isDone ? "#607d8b" : "#90a4ae" }}>
+                        {part.title}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.8rem", flexWrap: "wrap" }}>
+                {SECTIONS.map((s, i) => {
+                  const isActive = i === sectionIndex;
+                  const isDone = i < sectionIndex;
+                  return (
+                    <div
+                      key={s.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.3rem",
+                        padding: "0.24rem 0.58rem",
+                        borderRadius: "99px",
+                        background: isActive ? `${s.color}20` : isDone ? "rgba(90,155,212,0.06)" : "rgba(180,215,235,0.1)",
+                        border: `1px solid ${isActive ? s.color + "66" : isDone ? "rgba(90,155,212,0.2)" : "rgba(180,215,235,0.3)"}`,
+                        transition: "all 0.3s",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "0.66rem",
+                          fontWeight: 700,
+                          color: isDone ? "#78909c" : "inherit",
+                          textTransform: isDone ? "uppercase" : "none",
+                          letterSpacing: isDone ? "0.06em" : "normal",
+                        }}
+                      >
+                        {isDone ? "Done" : s.emoji}
+                      </span>
+                      <span style={{
+                        fontSize: "0.64rem",
+                        fontWeight: isActive ? 700 : 500,
+                        color: isActive ? s.color : isDone ? "#78909c" : "#b0bec5",
+                        whiteSpace: "nowrap",
+                      }}>
+                        {s.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{
+                height: "4px",
+                background: "rgba(90, 155, 212, 0.1)",
+                borderRadius: "99px",
+                marginBottom: currentPart.id === "preferences" ? "0.9rem" : "0",
+                overflow: "hidden",
+              }}>
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${progress}%`,
+                    background: `linear-gradient(90deg, #5a9bd4, ${currentSection.color})`,
+                    borderRadius: "99px",
+                    transition: "width 0.2s ease-out",
+                  }}
+                />
+              </div>
+
+              {currentPart.id === "preferences" && (
+                <div
+                  style={{
+                    marginTop: "0.9rem",
+                    padding: "0.95rem 1rem",
+                    borderRadius: "18px",
+                    background: "linear-gradient(135deg, rgba(118,199,183,0.16), rgba(90,155,212,0.08))",
+                    border: "1px solid rgba(118,199,183,0.26)",
+                    boxShadow: "0 10px 24px rgba(118,199,183,0.08)",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.8rem", flexWrap: "wrap" }}>
+                    <div>
+                      <p style={{ margin: "0 0 0.35rem", fontSize: "0.76rem", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#4f9f95" }}>
+                        Preference Section
+                      </p>
+                      <h3 style={{ margin: "0 0 0.25rem", fontSize: "1rem", lineHeight: 1.35, color: "#284b63", fontFamily: "var(--font-heading)" }}>
+                        Your stress score is already set.
+                      </h3>
+                      <p style={{ margin: 0, fontSize: "0.88rem", lineHeight: 1.6, color: "#607d8b" }}>
+                        These next questions do not change your score. They help describe how calm feels to you and what kind of support feels most useful.
+                      </p>
+                    </div>
+                    <div
+                      style={{
+                        padding: "0.42rem 0.9rem",
+                        borderRadius: "999px",
+                        background: "rgba(255,255,255,0.82)",
+                        border: "1px solid rgba(118,199,183,0.32)",
+                        color: "#4f9f95",
+                        fontSize: "0.82rem",
+                        fontWeight: 800,
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Not scored
+                    </div>
+                  </div>
+                  {isFirstQuestionInPart && (
+                    <div
+                      style={{
+                        marginTop: "0.7rem",
+                        paddingTop: "0.7rem",
+                        borderTop: "1px solid rgba(118,199,183,0.2)",
+                        fontSize: "0.84rem",
+                        fontWeight: 700,
+                        color: "#4f9f95",
+                      }}
+                    >
+                      You are now in Part 2 of 2.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+        <div style={{ position: "relative", zIndex: 1, padding: "0.95rem 0.9rem 1rem 1rem", borderRadius: "20px", background: "linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(248,251,255,0.96) 100%)", border: "1px solid rgba(90,155,212,0.14)", boxShadow: "0 12px 28px rgba(90,155,212,0.06)", minHeight: 0, height: "100%", overflowY: "auto", overscrollBehavior: "contain", WebkitOverflowScrolling: "touch", boxSizing: "border-box" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem", padding: "0.32rem 0.7rem", borderRadius: "999px", background: `${currentSection.color}14`, color: currentSection.color, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.7rem" }}>
               <span>{currentSection.emoji}</span>
               <span>{question.category}</span>
@@ -661,10 +686,11 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
             </div>
         </div>
         </div>
+        </div>
 
         {/* Navigation */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem", marginTop: "0.1rem", marginLeft: "-1.15rem", marginRight: "-1.15rem", marginBottom: "-0.95rem", padding: "0.85rem 1.15rem 0.95rem", position: "relative", zIndex: 3, background: "#ffffff", borderTop: "1px solid rgba(90,155,212,0.12)", boxShadow: "0 -10px 24px rgba(90,155,212,0.08)" }}>
-          <div style={{ fontSize: "0.82rem", color: "#78909c", fontWeight: 600 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)", alignItems: "center", gap: "0.75rem", marginTop: "0.1rem", marginLeft: "-1.15rem", marginRight: "-1.15rem", marginBottom: "-0.95rem", padding: "0.85rem 1.15rem 0.95rem", position: "relative", zIndex: 3, background: "#ffffff", borderTop: "1px solid rgba(90,155,212,0.12)", boxShadow: "0 -10px 24px rgba(90,155,212,0.08)" }}>
+          <div style={{ fontSize: "0.82rem", color: "#78909c", fontWeight: 600, minWidth: 0 }}>
             {selectedIndex !== null ? "Choice saved" : "Choose one answer to continue"}
           </div>
           <button
@@ -686,29 +712,30 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
           >
             Back
           </button>
-
-          <button
-            id="survey-next-btn"
-            onClick={handleNext}
-            disabled={selectedIndex === null}
-            style={{
-              background: selectedIndex !== null
-                ? "linear-gradient(135deg, #5a9bd4, #76c7b7)"
-                : "rgba(90,155,212,0.1)",
-              border: "none",
-              borderRadius: "99px",
-              color: selectedIndex !== null ? "white" : "#b0bec5",
-              padding: "0.74rem 1.55rem",
-              cursor: selectedIndex !== null ? "pointer" : "not-allowed",
-              fontSize: "0.95rem",
-              fontWeight: 700,
-              transition: "background 0.3s, color 0.3s",
-              boxShadow: selectedIndex !== null ? "0 4px 14px rgba(90,155,212,0.3)" : "none",
-              fontFamily: "var(--font-heading)",
-            }}
-          >
-            {isLast ? "See My Results" : isLastScoredQuestion ? "Continue to Preferences" : "Next"}
-          </button>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button
+              id="survey-next-btn"
+              onClick={handleNext}
+              disabled={selectedIndex === null}
+              style={{
+                background: selectedIndex !== null
+                  ? "linear-gradient(135deg, #5a9bd4, #76c7b7)"
+                  : "rgba(90,155,212,0.1)",
+                border: "none",
+                borderRadius: "99px",
+                color: selectedIndex !== null ? "white" : "#b0bec5",
+                padding: "0.74rem 1.55rem",
+                cursor: selectedIndex !== null ? "pointer" : "not-allowed",
+                fontSize: "0.95rem",
+                fontWeight: 700,
+                transition: "background 0.3s, color 0.3s",
+                boxShadow: selectedIndex !== null ? "0 4px 14px rgba(90,155,212,0.3)" : "none",
+                fontFamily: "var(--font-heading)",
+              }}
+            >
+              {isLast ? "See My Results" : isLastScoredQuestion ? "Continue to Preferences" : "Next"}
+            </button>
+          </div>
         </div>
       </motion.div>
     </motion.div>
