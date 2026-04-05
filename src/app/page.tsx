@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import BreathingButton from "@/components/BreathingButton";
+import DashboardSection from "@/components/DashboardSection";
 import TiltCard from "@/components/TiltCard";
 import StressToCalmPreview from "@/components/StressToCalmPreview";
 import StressSurvey from "@/components/StressSurvey";
 import InterventionGuide from "@/components/InterventionGuide";
-import { AuthService, User } from "@/services/auth";
+import { type SolutionMethodId } from "@/data/dashboard";
+import { AuthService } from "@/services/auth";
+import { DashboardAnalyticsService } from "@/services/dashboardAnalytics";
 
 // Staggered animation variants
 const containerVariants: Variants = {
@@ -36,20 +38,25 @@ const itemVariants: Variants = {
 };
 
 export default function Home() {
-  const [user, setUser] = useState<User | null>(null);
+  const user = useSyncExternalStore(
+    AuthService.subscribe,
+    AuthService.getCurrentUser,
+    () => null,
+  );
   const [isSurveyOpen, setIsSurveyOpen] = useState(false);
   const [calculatedScore, setCalculatedScore] = useState<number | null>(null);
   const [isInterventionOpen, setIsInterventionOpen] = useState(false);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const visualizerRef = useRef<HTMLDivElement>(null);
+  const dashboardSnapshot = useSyncExternalStore(
+    DashboardAnalyticsService.subscribe,
+    DashboardAnalyticsService.getSnapshot,
+    DashboardAnalyticsService.getServerSnapshot,
+  );
 
-  useEffect(() => {
-    setUser(AuthService.getCurrentUser());
-    const handleAuthChange = () => setUser(AuthService.getCurrentUser());
-    window.addEventListener("auth-change", handleAuthChange);
-    return () => window.removeEventListener("auth-change", handleAuthChange);
-  }, []);
-
-  const handleSurveyComplete = (score: number) => {
+  const handleSurveyComplete = (score: number, answers: Record<number, number>) => {
+    const sessionId = DashboardAnalyticsService.recordSurveySession({ answers });
+    setActiveSessionId(sessionId);
     setCalculatedScore(score);
     setIsSurveyOpen(false);
     // Smooth scroll to visualizer after a short delay
@@ -61,7 +68,12 @@ export default function Home() {
   const handleRetakeSurvey = () => {
     setIsInterventionOpen(false);
     setCalculatedScore(null);
+    setActiveSessionId(null);
     setTimeout(() => setIsSurveyOpen(true), 300);
+  };
+
+  const handleSolutionSelect = (solutionId: SolutionMethodId) => {
+    DashboardAnalyticsService.recordSolutionSelection(activeSessionId, solutionId);
   };
 
   return (
@@ -82,6 +94,7 @@ export default function Home() {
             score={calculatedScore}
             onClose={() => setIsInterventionOpen(false)}
             onRetake={handleRetakeSurvey}
+            onSelectSolution={handleSolutionSelect}
           />
         )}
       </AnimatePresence>
@@ -220,7 +233,7 @@ export default function Home() {
             viewport={{ once: true, margin: "-50px" }}
             variants={containerVariants}
           >
-            <TiltCard className="feature-card">
+            <TiltCard className="feature-card" flat>
               <div className="feature-icon" style={{ color: "#3b82f6" }}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -234,7 +247,7 @@ export default function Home() {
                 rather than graphic depictions.
               </p>
             </TiltCard>
-            <TiltCard className="feature-card">
+            <TiltCard className="feature-card" flat>
               <div className="feature-icon" style={{ color: "#14b8a6" }}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 9.75V10.5" />
@@ -247,7 +260,7 @@ export default function Home() {
                 and calming support.
               </p>
             </TiltCard>
-            <TiltCard className="feature-card">
+            <TiltCard className="feature-card" flat>
               <div className="feature-icon" style={{ color: "#ec4899" }}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
@@ -262,6 +275,8 @@ export default function Home() {
             </TiltCard>
           </motion.div>
         </section>
+
+        <DashboardSection snapshot={dashboardSnapshot} />
 
         <motion.section
           className="container mb-4"

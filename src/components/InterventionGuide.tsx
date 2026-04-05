@@ -2,8 +2,9 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { SOLUTION_METHODS, type SolutionMethodId } from "@/data/dashboard";
 
-type Method = "breathing" | "sound" | "visual" | "advice";
+type Method = SolutionMethodId;
 type SoundMode = "nature" | "ocean" | "guided" | "grounding" | "heartbeat";
 type VisualMode = "sky" | "waves" | "circle" | "pulse" | "single";
 type PhaseId = "inhale" | "hold" | "exhale";
@@ -150,13 +151,6 @@ const TIERS: Tier[] = [
       groundingSteps: ["Tell yourself 1 thing you can see right now, 1 thing you can hear right now, and 1 thing you can touch or feel right now.", "If that helps, find 2 new things you can see, 2 you can hear, and 2 you can feel.", "Stop and get support if the exercise makes you more distressed or you do not feel safe."],
     },
     support: { title: "Need immediate support?", text: "If you feel unable to stay safe or the distress is overwhelming, call or text 988 now. If there is immediate danger, call emergency services right away." } },
-];
-
-const METHODS = [
-  { id: "breathing" as Method, label: "Breathing", desc: "Follow the guide-prescribed breathing rhythm for your tier.", short: "BR" },
-  { id: "sound" as Method, label: "Sound", desc: "Play a matching calming sound pattern for this stress level.", short: "SO" },
-  { id: "visual" as Method, label: "Visual", desc: "Use guided imagery or visualization matched to this stress level.", short: "VI" },
-  { id: "advice" as Method, label: "Advice", desc: "Use the guide prompts together with a sensory grounding sequence.", short: "AD" },
 ];
 
 const CLOUDS = [
@@ -568,7 +562,7 @@ function SoundGuide({ tier }: { tier: Tier }) {
     </div>
   );
 }
-function CircleFocus({ tier }: { tier: Tier }) {
+function CircleFocus() {
   return (
     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "0.8rem" }}>
       <div style={{ width: "132px", height: "132px", borderRadius: "50%", border: `2px solid ${CALM_ACCENT}`, boxShadow: "0 0 34px rgba(99,179,237,0.18)", display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(99,179,237,0.14) 0%, rgba(255,255,255,0.9) 100%)" }}>
@@ -632,7 +626,7 @@ function VisualGuide({ tier }: { tier: Tier }) {
           </>
         )}
 
-        {tier.visual.mode === "circle" && <CircleFocus tier={tier} />}
+        {tier.visual.mode === "circle" && <CircleFocus />}
 
         {tier.visual.mode === "pulse" && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -732,9 +726,10 @@ interface InterventionGuideProps {
   score: number;
   onClose: () => void;
   onRetake: () => void;
+  onSelectSolution: (method: Method) => void;
 }
 
-export default function InterventionGuide({ score, onClose, onRetake }: InterventionGuideProps) {
+export default function InterventionGuide({ score, onClose, onRetake, onSelectSolution }: InterventionGuideProps) {
   const tier = getTier(score);
   const [selected, setSelected] = useState<Method | null>(null);
   const [viewportWidth, setViewportWidth] = useState(1024);
@@ -759,6 +754,10 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
 
   const isMobile = viewportWidth < 640;
   const isTablet = viewportWidth < 900;
+  const handleMethodSelect = (method: Method) => {
+    setSelected(method);
+    onSelectSolution(method);
+  };
 
   return (
     <motion.div id="intervention-guide-modal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -774,7 +773,7 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
               Score {score}/100 - {tier.label} - Range {tier.range}
             </p>
             <h2 style={{ color: "#2c3e50", fontSize: isMobile ? "1.3rem" : "1.55rem", fontWeight: 800, margin: 0, lineHeight: 1.2 }}>
-              {selected ? `${METHODS.find((method) => method.id === selected)?.label} Guide` : "Choose Your Solution"}
+              {selected ? `${SOLUTION_METHODS.find((method) => method.id === selected)?.label} Guide` : "Choose Your Solution"}
             </h2>
           </div>
           <button id="intervention-close-btn" onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#90a4ae", fontSize: "1.3rem", lineHeight: 1 }} aria-label="Close solution guide">x</button>
@@ -793,8 +792,8 @@ export default function InterventionGuide({ score, onClose, onRetake }: Interven
         {!selected ? (
             <div>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(220px, 1fr))", gap: "0.9rem", marginBottom: "1.2rem" }}>
-                {METHODS.map((method) => (
-                  <button key={method.id} id={`method-${method.id}-btn`} onClick={() => setSelected(method.id)}
+                {SOLUTION_METHODS.map((method) => (
+                  <button key={method.id} id={`method-${method.id}-btn`} onClick={() => handleMethodSelect(method.id)}
                     style={{ background: "rgba(255,255,255,0.74)", border: `1px solid ${CALM_BORDER}`, borderRadius: "18px", padding: "1.15rem", cursor: "pointer", textAlign: "left", display: "flex", flexDirection: "column", gap: "0.55rem", boxShadow: "0 8px 24px rgba(99,179,237,0.05)" }}>
                     <div style={{ width: "38px", height: "38px", borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", background: "rgba(227,242,253,0.82)", color: CALM_ACCENT_TEXT, fontWeight: 800 }}>{method.short}</div>
                     <div style={{ fontSize: "1rem", fontWeight: 700, color: "#2c3e50" }}>{method.label}</div>

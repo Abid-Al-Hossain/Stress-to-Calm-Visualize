@@ -7,12 +7,14 @@ interface TiltCardProps {
   children: React.ReactNode;
   className?: string;
   tiltMax?: number; // Max tilt in degrees (default 3 - subtle)
+  flat?: boolean;
 }
 
 export default function TiltCard({
   children,
   className = "",
   tiltMax = 3,
+  flat = false,
 }: TiltCardProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [hovering, setHovering] = useState(false);
@@ -25,9 +27,8 @@ export default function TiltCard({
   const mouseXSpring = useSpring(x, { stiffness: 400, damping: 90 }); // Very stiff, very damped
   const mouseYSpring = useSpring(y, { stiffness: 400, damping: 90 });
 
-  // Extremely subtle tilt (max 1 degree)
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], [1, -1]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], [-1, 1]);
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], [tiltMax, -tiltMax]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], [-tiltMax, tiltMax]);
 
   // Use simple scale for hover
   const scale = useSpring(hovering ? 1.02 : 1, { stiffness: 300, damping: 20 });
@@ -78,15 +79,15 @@ export default function TiltCard({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{
-        rotateX,
-        rotateY,
+        rotateX: flat ? 0 : rotateX,
+        rotateY: flat ? 0 : rotateY,
         scale,
         y: yMove,
-        transformStyle: "preserve-3d",
-        perspective: 1000,
+        transformStyle: flat ? "flat" : "preserve-3d",
+        perspective: flat ? "none" : 1000,
       }}
     >
-      <div style={{ transform: "translateZ(30px)" }}>{children}</div>
+      <div style={{ transform: flat ? "none" : "translateZ(30px)" }}>{children}</div>
 
       {/* Subtle Glare Layer */}
       <motion.div

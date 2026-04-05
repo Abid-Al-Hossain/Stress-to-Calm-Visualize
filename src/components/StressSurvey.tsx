@@ -243,7 +243,7 @@ const QUESTIONS: Question[] = [
 // ── Component ────────────────────────────────────────────────────────────────
 
 interface StressSurveyProps {
-  onComplete: (score: number) => void;
+  onComplete: (score: number, answers: Record<number, number>) => void;
   onClose: () => void;
 }
 
@@ -280,11 +280,18 @@ export default function StressSurvey({ onComplete, onClose }: StressSurveyProps)
   const handleNext = () => {
     if (selectedIndex === null) return;
     if (isLast) {
+      const selectedAnswers = Object.entries(answers).reduce<Record<number, number>>(
+        (acc, [questionId, answer]) => {
+          acc[Number(questionId)] = answer.optionIndex;
+          return acc;
+        },
+        {},
+      );
       const totalScore = QUESTIONS.filter((q) => q.scored).reduce(
         (acc, q) => acc + (answers[q.id]?.score ?? 0),
         0
       );
-      onComplete(Math.min(totalScore, 100));
+      onComplete(Math.min(totalScore, 100), selectedAnswers);
     } else {
       setCurrentIndex((i) => i + 1);
     }
